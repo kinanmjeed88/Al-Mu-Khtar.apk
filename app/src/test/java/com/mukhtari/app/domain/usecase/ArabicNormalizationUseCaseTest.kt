@@ -14,40 +14,51 @@ class ArabicNormalizationUseCaseTest {
     }
 
     @Test
-    fun testDiacriticsRemoval() {
-        assertEquals("محمد", useCase("مُحَمَّد"))
+    fun testRemoveDiacritics() {
+        val input = "مُحَمَّدٌ"
+        val expected = "محمد"
+        assertEquals(expected, useCase(input))
     }
 
     @Test
-    fun testTatweelRemoval() {
-        assertEquals("احمد", useCase("احمـــــد"))
+    fun testRemoveTatweel() {
+        val input = "مــــحــــمــــد"
+        val expected = "محمد"
+        assertEquals(expected, useCase(input))
     }
 
     @Test
-    fun testAlefUnification() {
-        assertEquals("احمد", useCase("أحمد"))
-        assertEquals("ايمان", useCase("إيمان"))
-        assertEquals("ادم", useCase("آدم"))
+    fun testUnifyAlef() {
+        val input = "أحمد إبراهيم آمال ٱختبار"
+        val expected = "احمد ابراهيم امال اختبار"
+        assertEquals(expected, useCase(input))
     }
 
     @Test
-    fun testTaaMarboutaUnification() {
-        assertEquals("فاطمه", useCase("فاطمة"))
+    fun testUnifyTaaMarbouta() {
+        val input = "فاطمة"
+        val expected = "فاطمه"
+        assertEquals(expected, useCase(input))
     }
 
     @Test
-    fun testYaaUnification() {
-        assertEquals("علي", useCase("على"))
-        assertEquals("مصطفي", useCase("مصطفى"))
+    fun testUnifyYaaVariants() {
+        val input = "علي سلمى"
+        val expected = "علي سلمي"
+        assertEquals(expected, useCase(input))
     }
 
     @Test
-    fun testSpaceUnification() {
-        assertEquals("علي احمد سعيد", useCase("علي   احمد    سعيد"))
+    fun testRemoveExtraSpaces() {
+        val input = "  حسن   محمد    علي  "
+        val expected = "حسن محمد علي"
+        assertEquals(expected, useCase(input))
     }
 
     @Test
     fun testCombinedNormalization() {
-        assertEquals("مصطفي احمد", useCase("  مُصْطَفَى   أَحْمَد  "))
+        val input = "  أَحْمَـــــدٌ   إِبْرَاهِيــــمَ   "
+        val expected = "احمد ابراهيم"
+        assertEquals(expected, useCase(input))
     }
 }
