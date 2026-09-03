@@ -2,9 +2,7 @@ package com.mukhtari.app.data.local.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.mukhtari.app.data.local.dao.PersonDao
-import com.mukhtari.app.data.local.dao.RegionDao
-import com.mukhtari.app.data.local.dao.ResidencyDao
+import com.mukhtari.app.data.local.dao.*
 import com.mukhtari.app.data.local.entity.*
 
 @Database(
@@ -34,4 +32,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun regionDao(): RegionDao
     abstract fun residencyDao(): ResidencyDao
     abstract fun personDao(): PersonDao
+    abstract fun dashboardDao(): DashboardDao
 }
