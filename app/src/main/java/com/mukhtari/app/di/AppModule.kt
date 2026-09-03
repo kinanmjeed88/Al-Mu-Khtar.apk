@@ -47,5 +47,6 @@ val appModule = module {
     
     single<SecurityRepository> { SecurityRepositoryImpl(androidContext()) }
     single<BackupRestoreRepository> { BackupRestoreRepositoryImpl(androidContext(), "mukhtari_database", 1, 1) }
-    single<ImportExportRepository> { ImportExportRepositoryImpl() }
+    single<ImportExportRepository> { ImportExportRepositoryImpl(get()) }
+    single<ActivityLogRepository> { ActivityLogRepositoryImpl(get()) }
 }

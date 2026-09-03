@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.mukhtari.app"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -97,4 +97,8 @@ dependencies {
 }
 dependencies {
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+}
+dependencies {
+    implementation("org.apache.poi:poi:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
 }
