@@ -30,7 +30,20 @@ import com.mukhtari.app.data.local.entity.*
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun regionDao(): RegionDao
-    abstract fun residencyDao(): ResidencyDao
+    abstract fun streetDao(): StreetDao
+    abstract fun alleyDao(): AlleyDao
+    abstract fun houseDao(): HouseDao
+    abstract fun familyDao(): FamilyDao
     abstract fun personDao(): PersonDao
+    abstract fun residencyDao(): ResidencyDao
+    abstract fun personMergeLogDao(): PersonMergeLogDao
+    abstract fun activityLogDao(): ActivityLogDao
+    abstract fun transactionDao(): TransactionDao
+    abstract fun attachmentDao(): AttachmentDao
+    abstract fun importStagingDao(): ImportStagingDao
+    abstract fun certificateDao(): CertificateDao
     abstract fun dashboardDao(): DashboardDao
+    abstract fun incomingLetterDao(): IncomingLetterDao
+    abstract fun outgoingLetterDao(): OutgoingLetterDao
+    abstract fun visitorLogDao(): VisitorLogDao
 }

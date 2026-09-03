@@ -27,6 +27,9 @@ val appModule = module {
     single { get<AppDatabase>().personDao() }
     single { get<AppDatabase>().residencyDao() }
     single { get<AppDatabase>().dashboardDao() }
+    single { get<AppDatabase>().incomingLetterDao() }
+    single { get<AppDatabase>().outgoingLetterDao() }
+    single { get<AppDatabase>().visitorLogDao() }
     
     // Use cases
     single { ArabicNormalizationUseCase() }
@@ -38,6 +41,9 @@ val appModule = module {
     // Repositories
     single<ResidencyRepository> { ResidencyRepositoryImpl(get(), get(), get()) }
     single<DashboardRepository> { DashboardRepositoryImpl(get()) }
+    single<IncomingLetterRepository> { IncomingLetterRepositoryImpl(get()) }
+    single<OutgoingLetterRepository> { OutgoingLetterRepositoryImpl(get()) }
+    single<VisitorLogRepository> { VisitorLogRepositoryImpl(get()) }
     
     single<SecurityRepository> { SecurityRepositoryImpl(androidContext()) }
     single<BackupRestoreRepository> { BackupRestoreRepositoryImpl(androidContext(), "mukhtari_database", 1, 1) }
