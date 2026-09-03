@@ -69,14 +69,14 @@ dependencies {
     
     // Room
     val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:\${roomVersion}")
-    implementation("androidx.room:room-ktx:\${roomVersion}")
-    ksp("androidx.room:room-compiler:\${roomVersion}")
+    implementation("androidx.room:room-runtime:${roomVersion}")
+    implementation("androidx.room:room-ktx:${roomVersion}")
+    ksp("androidx.room:room-compiler:${roomVersion}")
     
     // Koin for DI
     val koinVersion = "3.5.0"
-    implementation("io.insert-koin:koin-androidx-compose:\${koinVersion}")
-    implementation("io.insert-koin:koin-android:\${koinVersion}")
+    implementation("io.insert-koin:koin-androidx-compose:${koinVersion}")
+    implementation("io.insert-koin:koin-android:${koinVersion}")
 
     // Biometric & Security for App Lock
     implementation("androidx.biometric:biometric:1.1.0")
