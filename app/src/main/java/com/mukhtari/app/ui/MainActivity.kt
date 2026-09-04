@@ -12,6 +12,11 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import com.mukhtari.app.ui.navigation.MainNavGraph
 import com.mukhtari.app.ui.theme.MukhtariTheme
+import com.mukhtari.app.ui.security.AppLockScreen
+import com.mukhtari.app.ui.security.SecurityViewModel
+import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,7 +29,21 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        MainNavGraph()
+                        val securityViewModel: SecurityViewModel = koinViewModel()
+                        val isLocked by securityViewModel.isLocked.collectAsState()
+                        val isPinSet by securityViewModel.isPinSet.collectAsState()
+                        val error by securityViewModel.error.collectAsState()
+
+                        if (isLocked) {
+                            AppLockScreen(
+                                isPinSet = isPinSet,
+                                onPinSet = { securityViewModel.setPin(it) },
+                                onPinVerified = { securityViewModel.verifyPin(it) },
+                                error = error
+                            )
+                        } else {
+                            MainNavGraph()
+                        }
                     }
                 }
             }

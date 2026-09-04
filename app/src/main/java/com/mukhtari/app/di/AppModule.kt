@@ -27,6 +27,8 @@ val appModule = module {
     // DAOs
     single { get<AppDatabase>().regionDao() }
     single { get<AppDatabase>().personDao() }
+    single { get<AppDatabase>().familyDao() }
+    single { get<AppDatabase>().houseDao() }
     single { get<AppDatabase>().residencyDao() }
     single { get<AppDatabase>().dashboardDao() }
     single { get<AppDatabase>().incomingLetterDao() }
@@ -41,8 +43,11 @@ val appModule = module {
     single { Gson() }
     
     // Repositories
-    single<RegionRepository> { RegionRepositoryImpl(get()) }
-    single<ResidencyRepository> { ResidencyRepositoryImpl(get(), get(), get()) }
+    single<RegionRepository> { RegionRepositoryImpl(get(), get(), get()) }
+    single<PersonRepository> { PersonRepositoryImpl(get(), get(), get(), get()) }
+    single<FamilyRepository> { FamilyRepositoryImpl(get(), get(), get()) }
+    single<HouseRepository> { HouseRepositoryImpl(get(), get(), get()) }
+    single<ResidencyRepository> { ResidencyRepositoryImpl(get(), get(), get(), get()) }
     single<DashboardRepository> { DashboardRepositoryImpl(get()) }
     single<IncomingLetterRepository> { IncomingLetterRepositoryImpl(get()) }
     single<OutgoingLetterRepository> { OutgoingLetterRepositoryImpl(get()) }
@@ -56,7 +61,8 @@ val appModule = module {
     // ViewModels
     viewModel { RegionsViewModel(get()) }
     viewModel { com.mukhtari.app.ui.families.FamiliesViewModel(get()) }
-    viewModel { com.mukhtari.app.ui.persons.PersonsViewModel(get()) }
+    viewModel { com.mukhtari.app.ui.persons.PersonsViewModel(get(), get()) }
     viewModel { com.mukhtari.app.ui.houses.HousesViewModel(get()) }
     viewModel { com.mukhtari.app.ui.dashboard.DashboardViewModel(get()) }
+    viewModel { com.mukhtari.app.ui.security.SecurityViewModel(get()) }
 }

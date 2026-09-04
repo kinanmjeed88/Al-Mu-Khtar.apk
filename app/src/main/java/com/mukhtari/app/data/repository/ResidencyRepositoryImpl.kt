@@ -5,12 +5,14 @@ import com.mukhtari.app.data.local.dao.PersonDao
 import com.mukhtari.app.data.local.dao.ResidencyDao
 import com.mukhtari.app.data.local.db.AppDatabase
 import com.mukhtari.app.data.local.entity.ResidencyEntity
+import com.mukhtari.app.domain.repository.ActivityLogRepository
 import com.mukhtari.app.domain.repository.ResidencyRepository
 
 class ResidencyRepositoryImpl(
     private val db: AppDatabase,
     private val residencyDao: ResidencyDao,
-    private val personDao: PersonDao
+    private val personDao: PersonDao,
+    private val activityLogRepository: ActivityLogRepository
 ) : ResidencyRepository {
 
     override suspend fun transferPerson(
@@ -52,12 +54,20 @@ class ResidencyRepositoryImpl(
             // 3. Update Person's house and family references
             val person = personDao.getActivePersonById(personId)
             if (person != null) {
-                personDao.updatePerson(
-                    person.copy(
-                        houseId = newHouseId,
-                        familyId = newFamilyId,
-                        updatedAt = System.currentTimeMillis()
-                    )
+                val newPerson = person.copy(
+                    houseId = newHouseId,
+                    familyId = newFamilyId,
+                    updatedAt = System.currentTimeMillis()
+                )
+                personDao.updatePerson(newPerson)
+
+                activityLogRepository.logActivity(
+                    actionType = "TRANSFER",
+                    entityType = "Residency",
+                    entityId = personId,
+                    description = "Transferred person ${person.fullName} to house $newHouseId",
+                    oldValues = person.toString(),
+                    newValues = newPerson.toString()
                 )
             }
         }

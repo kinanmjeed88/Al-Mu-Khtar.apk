@@ -32,4 +32,16 @@ class FamiliesViewModel(
             }
         }
     }
+
+    fun saveFamily(family: FamilyEntity) {
+        viewModelScope.launch {
+            familyRepository.saveFamily(family)
+        }
+    }
+
+    fun deleteFamily(id: Long) {
+        viewModelScope.launch {
+            familyRepository.softDeleteFamily(id)
+        }
+    }
 }
