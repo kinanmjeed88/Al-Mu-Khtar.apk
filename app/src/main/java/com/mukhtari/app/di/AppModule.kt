@@ -13,6 +13,10 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import org.koin.androidx.viewmodel.dsl.viewModel
 import com.mukhtari.app.ui.regions.RegionsViewModel
+import com.mukhtari.app.ui.transactions.TransactionsViewModel
+import com.mukhtari.app.ui.letters.IncomingLettersViewModel
+import com.mukhtari.app.ui.letters.OutgoingLettersViewModel
+import com.mukhtari.app.ui.visitors.VisitorsViewModel
 import com.google.gson.Gson
 
 val appModule = module {
@@ -65,4 +69,8 @@ val appModule = module {
     viewModel { com.mukhtari.app.ui.houses.HousesViewModel(get()) }
     viewModel { com.mukhtari.app.ui.dashboard.DashboardViewModel(get()) }
     viewModel { com.mukhtari.app.ui.security.SecurityViewModel(get()) }
+    viewModel { TransactionsViewModel(get()) }
+    viewModel { IncomingLettersViewModel(get()) }
+    viewModel { OutgoingLettersViewModel(get()) }
+    viewModel { VisitorsViewModel(get()) }
 }

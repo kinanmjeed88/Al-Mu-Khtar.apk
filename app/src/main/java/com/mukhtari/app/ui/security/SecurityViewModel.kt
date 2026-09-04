@@ -27,7 +27,11 @@ class SecurityViewModel(
 
     private fun checkPinStatus() {
         viewModelScope.launch {
-            _isPinSet.value = securityRepository.isPinSet()
+            val hasPin = securityRepository.isPinSet()
+            _isPinSet.value = hasPin
+            if (!hasPin) {
+                _isLocked.value = false
+            }
         }
     }
 

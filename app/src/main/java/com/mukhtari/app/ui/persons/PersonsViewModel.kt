@@ -24,14 +24,27 @@ class PersonsViewModel(
     private val _duplicateWarning = MutableStateFlow<String?>(null)
     val duplicateWarning: StateFlow<String?> = _duplicateWarning.asStateFlow()
 
+    val searchQuery = MutableStateFlow("")
+
     init {
         loadPersons()
+
+        viewModelScope.launch {
+            searchQuery.collect {
+                loadPersons()
+            }
+        }
     }
 
     fun loadPersons() {
         viewModelScope.launch {
             _isLoading.value = true
-            _persons.value = personRepository.getActivePersons()
+            val query = searchQuery.value.trim()
+            if (query.isEmpty()) {
+                _persons.value = personRepository.getActivePersons()
+            } else {
+                _persons.value = personRepository.searchPersons(query)
+            }
             _isLoading.value = false
         }
     }

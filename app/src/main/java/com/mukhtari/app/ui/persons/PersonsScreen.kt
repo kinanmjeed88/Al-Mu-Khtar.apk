@@ -182,35 +182,45 @@ fun PersonsScreen(
             }
         }
     ) { padding ->
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (persons.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("لا يوجد أفراد مضافين.", style = MaterialTheme.typography.bodyLarge)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.padding(padding).fillMaxSize(),
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                items(persons) { person ->
-                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(text = person.fullName, style = MaterialTheme.typography.titleMedium)
-                            Text(text = "رقم الهوية: ${person.publicCode}", style = MaterialTheme.typography.bodyMedium)
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                TextButton(onClick = {
-                                    publicCode = person.publicCode
-                                    fullName = person.fullName
-                                    fatherName = person.fatherName ?: ""
-                                    personToEdit = person
-                                }) {
-                                    Text("تعديل")
-                                }
-                                TextButton(onClick = { viewModel.deletePerson(person.id) }) {
-                                    Text("حذف", color = MaterialTheme.colorScheme.error)
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            val searchQuery by viewModel.searchQuery.collectAsState()
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.searchQuery.value = it },
+                label = { Text("بحث عن شخص...") },
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            )
+
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (persons.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("لا يوجد أفراد مضافين.", style = MaterialTheme.typography.bodyLarge)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    items(persons) { person ->
+                        Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(text = person.fullName, style = MaterialTheme.typography.titleMedium)
+                                Text(text = "رقم الهوية: ${person.publicCode}", style = MaterialTheme.typography.bodyMedium)
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    TextButton(onClick = {
+                                        publicCode = person.publicCode
+                                        fullName = person.fullName
+                                        fatherName = person.fatherName ?: ""
+                                        personToEdit = person
+                                    }) {
+                                        Text("تعديل")
+                                    }
+                                    TextButton(onClick = { viewModel.deletePerson(person.id) }) {
+                                        Text("حذف", color = MaterialTheme.colorScheme.error)
+                                    }
                                 }
                             }
                         }
