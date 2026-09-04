@@ -11,6 +11,8 @@ import com.mukhtari.app.domain.usecase.ArabicNormalizationUseCase
 import com.mukhtari.app.domain.usecase.DuplicateDetectionUseCase
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
+import org.koin.androidx.viewmodel.dsl.viewModel
+import com.mukhtari.app.ui.regions.RegionsViewModel
 import com.google.gson.Gson
 
 val appModule = module {
@@ -39,6 +41,7 @@ val appModule = module {
     single { Gson() }
     
     // Repositories
+    single<RegionRepository> { RegionRepositoryImpl(get()) }
     single<ResidencyRepository> { ResidencyRepositoryImpl(get(), get(), get()) }
     single<DashboardRepository> { DashboardRepositoryImpl(get()) }
     single<IncomingLetterRepository> { IncomingLetterRepositoryImpl(get()) }
@@ -49,4 +52,8 @@ val appModule = module {
     single<BackupRestoreRepository> { BackupRestoreRepositoryImpl(androidContext(), "mukhtari_database", 1, 1) }
     single<ImportExportRepository> { ImportExportRepositoryImpl(get()) }
     single<ActivityLogRepository> { ActivityLogRepositoryImpl(get()) }
+
+    // ViewModels
+    viewModel { RegionsViewModel(get()) }
+    viewModel { com.mukhtari.app.ui.dashboard.DashboardViewModel(get()) }
 }

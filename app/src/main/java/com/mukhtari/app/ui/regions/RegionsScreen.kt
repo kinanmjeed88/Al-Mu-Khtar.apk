@@ -9,19 +9,96 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mukhtari.app.data.local.entity.RegionEntity
+import org.koin.androidx.compose.koinViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegionsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToRegionDetail: (Long?) -> Unit
+    viewModel: RegionsViewModel = koinViewModel()
 ) {
-    val regions = listOf(
-        RegionEntity(1, "REG-01", "Baghdad", "Karkh", "Mansour", "601", "Al-Mansour", null, null, 0, null, null, 0, 0)
-    )
+    val regions by viewModel.regions.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    var showAddDialog by remember { mutableStateOf(false) }
+    var regionName by remember { mutableStateOf("") }
+    var governorate by remember { mutableStateOf("") }
+    var district by remember { mutableStateOf("") }
+    var publicCode by remember { mutableStateOf("") }
+
+    if (showAddDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false },
+            title = { Text("إضافة منطقة جديدة") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = publicCode,
+                        onValueChange = { publicCode = it },
+                        label = { Text("الرمز العام (Public Code)") },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    )
+                    OutlinedTextField(
+                        value = regionName,
+                        onValueChange = { regionName = it },
+                        label = { Text("اسم المنطقة") },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    )
+                    OutlinedTextField(
+                        value = governorate,
+                        onValueChange = { governorate = it },
+                        label = { Text("المحافظة") },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    )
+                    OutlinedTextField(
+                        value = district,
+                        onValueChange = { district = it },
+                        label = { Text("القضاء") },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (regionName.isNotBlank() && governorate.isNotBlank() && district.isNotBlank() && publicCode.isNotBlank()) {
+                        viewModel.saveRegion(
+                            RegionEntity(
+                                publicCode = publicCode,
+                                governorate = governorate,
+                                district = district,
+                                subDistrict = "",
+                                mahalla = "",
+                                name = regionName,
+                                description = null,
+                                notes = null,
+                                createdAt = System.currentTimeMillis(),
+                                updatedAt = System.currentTimeMillis(),
+                                deletedAt = null,
+                                deletedReason = null
+                            )
+                        )
+                        showAddDialog = false
+                        regionName = ""
+                        governorate = ""
+                        district = ""
+                        publicCode = ""
+                    }
+                }) {
+                    Text("حفظ")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddDialog = false }) {
+                    Text("إلغاء")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -35,25 +112,41 @@ fun RegionsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onNavigateToRegionDetail(null) }) {
+            FloatingActionButton(onClick = { showAddDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = "إضافة منطقة")
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.padding(padding).fillMaxSize(),
-            contentPadding = PaddingValues(16.dp)
-        ) {
-            items(regions) { region ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable { onNavigateToRegionDetail(region.id) }
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = region.name, style = MaterialTheme.typography.titleMedium)
-                        Text(text = "\${region.governorate} - \${region.district}", style = MaterialTheme.typography.bodyMedium)
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (regions.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("لا توجد مناطق مضافة.", style = MaterialTheme.typography.bodyLarge)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.padding(padding).fillMaxSize(),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(regions) { region ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .clickable { /* Edit logic would go here */ }
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(text = region.name, style = MaterialTheme.typography.titleMedium)
+                            Text(text = "${region.governorate} - ${region.district}", style = MaterialTheme.typography.bodyMedium)
+                            
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                TextButton(onClick = { viewModel.deleteRegion(region.id) }) {
+                                    Text("حذف", color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
                     }
                 }
             }

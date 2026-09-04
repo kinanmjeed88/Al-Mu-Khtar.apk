@@ -7,11 +7,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,8 +24,11 @@ fun DashboardScreen(
     onNavigateToFamilies: () -> Unit,
     onNavigateToPersons: () -> Unit,
     onNavigateToTransactions: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    viewModel: DashboardViewModel = koinViewModel()
 ) {
+    val stats by viewModel.statistics.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -34,17 +40,42 @@ fun DashboardScreen(
             )
         }
     ) { padding ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
-            modifier = Modifier.padding(padding).fillMaxSize()
-        ) {
-            item { DashboardCard("المناطق والشوارع", Icons.Default.LocationOn, onNavigateToRegions) }
-            item { DashboardCard("الدور", Icons.Default.Home, onNavigateToHouses) }
-            item { DashboardCard("العوائل", Icons.Default.List, onNavigateToFamilies) }
-            item { DashboardCard("الأفراد", Icons.Default.Person, onNavigateToPersons) }
-            item { DashboardCard("المعاملات", Icons.Default.Email, onNavigateToTransactions) }
-            item { DashboardCard("الإعدادات", Icons.Default.Settings, onNavigateToSettings) }
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            
+            // Statistics Overview
+            if (stats != null) {
+                Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("إحصائيات سريعة", style = MaterialTheme.typography.titleLarge)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("إجمالي الأفراد: \${stats!!.totalPersons}")
+                            Text("إجمالي الدور: \${stats!!.totalHouses}")
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("ذكور: \${stats!!.totalMales} / إناث: \${stats!!.totalFemales}")
+                            Text("عائلات: \${stats!!.totalFamilies}")
+                        }
+                    }
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(16.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item { DashboardCard("المناطق والشوارع", Icons.Default.LocationOn, onNavigateToRegions) }
+                item { DashboardCard("الدور", Icons.Default.Home, onNavigateToHouses) }
+                item { DashboardCard("العوائل", Icons.Default.List, onNavigateToFamilies) }
+                item { DashboardCard("الأفراد", Icons.Default.Person, onNavigateToPersons) }
+                item { DashboardCard("المعاملات", Icons.Default.Email, onNavigateToTransactions) }
+                item { DashboardCard("الإعدادات", Icons.Default.Settings, onNavigateToSettings) }
+            }
         }
     }
 }

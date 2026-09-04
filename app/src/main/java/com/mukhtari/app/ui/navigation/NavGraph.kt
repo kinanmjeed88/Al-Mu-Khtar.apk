@@ -30,7 +30,6 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
         composable("regions") {
             RegionsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToRegionDetail = { id -> /* navigate to details */ }
             )
         }
         composable("houses") {
