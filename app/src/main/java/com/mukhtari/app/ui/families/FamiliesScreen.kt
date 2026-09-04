@@ -50,7 +50,7 @@ fun FamiliesScreen(
                     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(text = family.familyName ?: "غير محدد", style = MaterialTheme.typography.titleMedium)
-                            Text(text = "كود العائلة: \${family.familyCode}", style = MaterialTheme.typography.bodyMedium)
+                            Text(text = "كود العائلة: ${family.familyCode}", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }

@@ -50,7 +50,7 @@ fun PersonsScreen(
                     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(text = person.fullName, style = MaterialTheme.typography.titleMedium)
-                            Text(text = "رقم الهوية: \${person.publicCode}", style = MaterialTheme.typography.bodyMedium)
+                            Text(text = "رقم الهوية: ${person.publicCode}", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }

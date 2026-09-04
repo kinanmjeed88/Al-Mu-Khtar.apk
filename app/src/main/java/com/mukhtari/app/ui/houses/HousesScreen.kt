@@ -49,8 +49,8 @@ fun HousesScreen(
                 items(houses) { house ->
                     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text(text = "دار رقم: \${house.houseNumber}", style = MaterialTheme.typography.titleMedium)
-                            Text(text = "الحالة: \${house.status}", style = MaterialTheme.typography.bodyMedium)
+                            Text(text = "دار رقم: ${house.houseNumber}", style = MaterialTheme.typography.titleMedium)
+                            Text(text = "الحالة: ${house.status}", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
