@@ -1,0 +1,200 @@
+﻿2026-09-04T08:51:22.1997232Z Current runner version: '2.337.0'
+2026-09-04T08:51:22.2023227Z ##[group]Runner Image Provisioner
+2026-09-04T08:51:22.2024167Z Hosted Compute Agent
+2026-09-04T08:51:22.2024797Z Version: 20260828.587
+2026-09-04T08:51:22.2025509Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-04T08:51:22.2026238Z Build Date: 2026-08-28T16:44:25Z
+2026-09-04T08:51:22.2027034Z Worker ID: {afaf2c7c-fde9-49b6-b771-72631d89d2af}
+2026-09-04T08:51:22.2027798Z Azure Region: westus
+2026-09-04T08:51:22.2028363Z ##[endgroup]
+2026-09-04T08:51:22.2030460Z ##[group]Operating System
+2026-09-04T08:51:22.2031143Z Ubuntu
+2026-09-04T08:51:22.2031647Z 24.04.4
+2026-09-04T08:51:22.2032269Z LTS
+2026-09-04T08:51:22.2032777Z ##[endgroup]
+2026-09-04T08:51:22.2033356Z ##[group]Runner Image
+2026-09-04T08:51:22.2033963Z Image: ubuntu-24.04
+2026-09-04T08:51:22.2034593Z Version: 20260831.293.1
+2026-09-04T08:51:22.2035908Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260831.293/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-04T08:51:22.2037512Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260831.293
+2026-09-04T08:51:22.2038542Z ##[endgroup]
+2026-09-04T08:51:22.2040038Z ##[group]GITHUB_TOKEN Permissions
+2026-09-04T08:51:22.2042260Z Contents: read
+2026-09-04T08:51:22.2042852Z Metadata: read
+2026-09-04T08:51:22.2043970Z Packages: read
+2026-09-04T08:51:22.2044702Z ##[endgroup]
+2026-09-04T08:51:22.2046880Z Secret source: Actions
+2026-09-04T08:51:22.2048018Z Prepare workflow directory
+2026-09-04T08:51:22.2397904Z Prepare all required actions
+2026-09-04T08:51:22.2450469Z Getting action download info
+2026-09-04T08:51:22.6001863Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-04T08:51:22.7552480Z Download action repository 'actions/setup-java@v4' (SHA:cf277c60eb25467037889841efdb72551f06f6c3)
+2026-09-04T08:51:23.3040707Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-09-04T08:51:23.5478066Z Complete job name: build
+2026-09-04T08:51:23.6387859Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-04T08:51:23.6399488Z ##[group]Run actions/checkout@v4
+2026-09-04T08:51:23.6400717Z with:
+2026-09-04T08:51:23.6401526Z   repository: kinanmjeed88/Al-Mu-Khtar.apk
+2026-09-04T08:51:23.6410776Z   token: ***
+2026-09-04T08:51:23.6411543Z   ssh-strict: true
+2026-09-04T08:51:23.6412319Z   ssh-user: git
+2026-09-04T08:51:23.6413117Z   persist-credentials: true
+2026-09-04T08:51:23.6414006Z   clean: true
+2026-09-04T08:51:23.6414795Z   sparse-checkout-cone-mode: true
+2026-09-04T08:51:23.6415738Z   fetch-depth: 1
+2026-09-04T08:51:23.6416552Z   fetch-tags: false
+2026-09-04T08:51:23.6417356Z   show-progress: true
+2026-09-04T08:51:23.6418177Z   lfs: false
+2026-09-04T08:51:23.6419243Z   submodules: false
+2026-09-04T08:51:23.6420086Z   set-safe-directory: true
+2026-09-04T08:51:23.6421019Z   allow-unsafe-pr-checkout: false
+2026-09-04T08:51:23.6422308Z ##[endgroup]
+2026-09-04T08:51:23.7486762Z Syncing repository: kinanmjeed88/Al-Mu-Khtar.apk
+2026-09-04T08:51:23.7491203Z ##[group]Getting Git version info
+2026-09-04T08:51:23.7493650Z Working directory is '/home/runner/work/Al-Mu-Khtar.apk/Al-Mu-Khtar.apk'
+2026-09-04T08:51:23.7497018Z [command]/usr/bin/git version
+2026-09-04T08:51:23.7539841Z git version 2.55.0
+2026-09-04T08:51:23.7564501Z ##[endgroup]
+2026-09-04T08:51:23.7581105Z Temporarily overriding HOME='/home/runner/work/_temp/3cfe23d1-bf5d-4d21-aec2-be00f0f6ed58' before making global git config changes
+2026-09-04T08:51:23.7585890Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-04T08:51:23.7592538Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Al-Mu-Khtar.apk/Al-Mu-Khtar.apk
+2026-09-04T08:51:23.7659054Z Deleting the contents of '/home/runner/work/Al-Mu-Khtar.apk/Al-Mu-Khtar.apk'
+2026-09-04T08:51:23.7663581Z ##[group]Initializing the repository
+2026-09-04T08:51:23.7669143Z [command]/usr/bin/git init /home/runner/work/Al-Mu-Khtar.apk/Al-Mu-Khtar.apk
+2026-09-04T08:51:23.7790248Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-04T08:51:23.7793161Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-04T08:51:23.7796436Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-04T08:51:23.7799327Z hint: call:
+2026-09-04T08:51:23.7810597Z hint:
+2026-09-04T08:51:23.7812199Z hint: 	git config --global init.defaultBranch <name>
+2026-09-04T08:51:23.7817397Z hint:
+2026-09-04T08:51:23.7818531Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-04T08:51:23.7821657Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-04T08:51:23.7824444Z hint:
+2026-09-04T08:51:23.7826141Z hint: 	git branch -m <name>
+2026-09-04T08:51:23.7827593Z hint:
+2026-09-04T08:51:23.7829717Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-04T08:51:23.7833420Z Initialized empty Git repository in /home/runner/work/Al-Mu-Khtar.apk/Al-Mu-Khtar.apk/.git/
+2026-09-04T08:51:23.7839555Z [command]/usr/bin/git remote add origin https://github.com/kinanmjeed88/Al-Mu-Khtar.apk
+2026-09-04T08:51:23.7859210Z ##[endgroup]
+2026-09-04T08:51:23.7861250Z ##[group]Disabling automatic garbage collection
+2026-09-04T08:51:23.7863083Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-04T08:51:23.7897262Z ##[endgroup]
+2026-09-04T08:51:23.7899283Z ##[group]Setting up auth
+2026-09-04T08:51:23.7905663Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-04T08:51:23.7940957Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-04T08:51:23.8334189Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-04T08:51:23.8374744Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-04T08:51:23.8622890Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-04T08:51:23.8658571Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-04T08:51:23.8887997Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-04T08:51:23.8931299Z ##[endgroup]
+2026-09-04T08:51:23.8932894Z ##[group]Fetching the repository
+2026-09-04T08:51:23.8942363Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +c772a0f5d0bcb5c5d91fc4928abb8c38350d3a1e:refs/remotes/origin/main
+2026-09-04T08:51:24.3697357Z From https://github.com/kinanmjeed88/Al-Mu-Khtar.apk
+2026-09-04T08:51:24.3699461Z  * [new ref]         c772a0f5d0bcb5c5d91fc4928abb8c38350d3a1e -> origin/main
+2026-09-04T08:51:24.3703404Z ##[endgroup]
+2026-09-04T08:51:24.3705494Z ##[group]Determining the checkout info
+2026-09-04T08:51:24.3707419Z ##[endgroup]
+2026-09-04T08:51:24.3711813Z [command]/usr/bin/git sparse-checkout disable
+2026-09-04T08:51:24.3765246Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-04T08:51:24.3797758Z ##[group]Checking out the ref
+2026-09-04T08:51:24.3802198Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-04T08:51:24.3913033Z Switched to a new branch 'main'
+2026-09-04T08:51:24.3919515Z branch 'main' set up to track 'origin/main'.
+2026-09-04T08:51:24.3927409Z ##[endgroup]
+2026-09-04T08:51:24.3969585Z [command]/usr/bin/git log -1 --format=%H
+2026-09-04T08:51:24.3997470Z c772a0f5d0bcb5c5d91fc4928abb8c38350d3a1e
+2026-09-04T08:51:24.4480286Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-04T08:51:24.4485527Z ##[group]Run actions/setup-java@v4
+2026-09-04T08:51:24.4486586Z with:
+2026-09-04T08:51:24.4487417Z   java-version: 17
+2026-09-04T08:51:24.4488321Z   distribution: temurin
+2026-09-04T08:51:24.4489442Z   cache: gradle
+2026-09-04T08:51:24.4490319Z   java-package: jdk
+2026-09-04T08:51:24.4491211Z   check-latest: false
+2026-09-04T08:51:24.4492115Z   server-id: github
+2026-09-04T08:51:24.4493031Z   server-username: GITHUB_ACTOR
+2026-09-04T08:51:24.4494082Z   server-password: GITHUB_TOKEN
+2026-09-04T08:51:24.4495146Z   overwrite-settings: true
+2026-09-04T08:51:24.4496145Z   job-status: success
+2026-09-04T08:51:24.4505042Z   token: ***
+2026-09-04T08:51:24.4505945Z ##[endgroup]
+2026-09-04T08:51:24.6211542Z ##[warning]setup-java v4 is deprecated and will no longer receive updates. Please migrate to actions/setup-java@v5.
+2026-09-04T08:51:24.6222383Z ##[group]Installed distributions
+2026-09-04T08:51:24.6262345Z Resolved Java 17.0.20+1 from tool-cache
+2026-09-04T08:51:24.6264383Z Setting Java 17.0.20+1 as the default
+2026-09-04T08:51:24.6275740Z (node:2227) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-04T08:51:24.6280291Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-04T08:51:24.6283230Z Creating toolchains.xml for JDK version 17 from temurin
+2026-09-04T08:51:24.6356437Z Writing to /home/runner/.m2/toolchains.xml
+2026-09-04T08:51:24.6357899Z 
+2026-09-04T08:51:24.6358568Z Java configuration:
+2026-09-04T08:51:24.6360436Z   Distribution: temurin
+2026-09-04T08:51:24.6362128Z   Version: 17.0.20+1
+2026-09-04T08:51:24.6364222Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-04T08:51:24.6366007Z 
+2026-09-04T08:51:24.6381001Z ##[endgroup]
+2026-09-04T08:51:24.6430236Z Creating settings.xml with server-id: github
+2026-09-04T08:51:24.6432510Z Writing to /home/runner/.m2/settings.xml
+2026-09-04T08:51:24.9560631Z gradle cache is not found
+2026-09-04T08:51:24.9751256Z ##[group]Run chmod +x gradlew
+2026-09-04T08:51:24.9752443Z [36;1mchmod +x gradlew[0m
+2026-09-04T08:51:24.9797651Z shell: /usr/bin/bash -e {0}
+2026-09-04T08:51:24.9798676Z env:
+2026-09-04T08:51:24.9800077Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-04T08:51:24.9802265Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-04T08:51:24.9803787Z ##[endgroup]
+2026-09-04T08:51:24.9978235Z ##[group]Run ./gradlew testDebugUnitTest
+2026-09-04T08:51:24.9979839Z [36;1m./gradlew testDebugUnitTest[0m
+2026-09-04T08:51:25.0018101Z shell: /usr/bin/bash -e {0}
+2026-09-04T08:51:25.0019362Z env:
+2026-09-04T08:51:25.0020539Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-04T08:51:25.0022405Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-04T08:51:25.0023901Z ##[endgroup]
+2026-09-04T08:51:25.2167872Z Downloading https://services.gradle.org/distributions/gradle-8.1.1-bin.zip
+2026-09-04T08:51:27.3266379Z ...........10%............20%............30%............40%............50%............60%............70%............80%...........90%............100%
+2026-09-04T08:51:28.3487890Z 
+2026-09-04T08:51:28.3489261Z Welcome to Gradle 8.1.1!
+2026-09-04T08:51:28.3490164Z 
+2026-09-04T08:51:28.3490812Z Here are the highlights of this release:
+2026-09-04T08:51:28.3492337Z  - Stable configuration cache
+2026-09-04T08:51:28.3493386Z  - Experimental Kotlin DSL assignment syntax
+2026-09-04T08:51:28.3494196Z  - Building with Java 20
+2026-09-04T08:51:28.3494542Z 
+2026-09-04T08:51:28.3496532Z For more details see https://docs.gradle.org/8.1.1/release-notes.html
+2026-09-04T08:51:28.3497495Z 
+2026-09-04T08:51:28.3572846Z 
+2026-09-04T08:51:28.3576494Z FAILURE: Build failed with an exception.
+2026-09-04T08:51:28.3576910Z 
+2026-09-04T08:51:28.3577118Z * What went wrong:
+2026-09-04T08:51:28.3578197Z Value '/usr/lib/jvm/java-17-openjdk-amd64' given for org.gradle.java.home Gradle property is invalid (Java home supplied is invalid)
+2026-09-04T08:51:28.3579408Z 
+2026-09-04T08:51:28.3579574Z * Try:
+2026-09-04T08:51:28.3580052Z > Run with --stacktrace option to get the stack trace.
+2026-09-04T08:51:28.3580769Z > Run with --info or --debug option to get more log output.
+2026-09-04T08:51:28.3581441Z > Run with --scan to get full insights.
+2026-09-04T08:51:28.3581803Z 
+2026-09-04T08:51:28.3582352Z * Get more help at https://help.gradle.org
+2026-09-04T08:51:28.3804853Z ##[error]Process completed with exit code 1.
+2026-09-04T08:51:28.3949793Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-04T08:51:28.3951073Z Post job cleanup.
+2026-09-04T08:51:28.5321642Z (node:2317) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-04T08:51:28.5323058Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-04T08:51:28.5587594Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-04T08:51:28.5589174Z Post job cleanup.
+2026-09-04T08:51:28.6512883Z [command]/usr/bin/git version
+2026-09-04T08:51:28.6579861Z git version 2.55.0
+2026-09-04T08:51:28.6660035Z Temporarily overriding HOME='/home/runner/work/_temp/e9062d15-d3ba-43fc-b6f9-d38d9435dbc4' before making global git config changes
+2026-09-04T08:51:28.6661395Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-04T08:51:28.6662520Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Al-Mu-Khtar.apk/Al-Mu-Khtar.apk
+2026-09-04T08:51:28.6687928Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-04T08:51:28.6736223Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-04T08:51:28.6997711Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-04T08:51:28.7025177Z http.https://github.com/.extraheader
+2026-09-04T08:51:28.7037236Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-04T08:51:28.7082141Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-04T08:51:28.7345643Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-04T08:51:28.7383430Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-04T08:51:28.7795269Z Cleaning up orphan processes
+2026-09-04T08:51:28.8238145Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-java@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
