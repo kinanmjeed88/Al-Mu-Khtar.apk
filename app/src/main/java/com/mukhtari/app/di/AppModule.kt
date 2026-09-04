@@ -55,5 +55,8 @@ val appModule = module {
 
     // ViewModels
     viewModel { RegionsViewModel(get()) }
+    viewModel { com.mukhtari.app.ui.families.FamiliesViewModel(get()) }
+    viewModel { com.mukhtari.app.ui.persons.PersonsViewModel(get()) }
+    viewModel { com.mukhtari.app.ui.houses.HousesViewModel(get()) }
     viewModel { com.mukhtari.app.ui.dashboard.DashboardViewModel(get()) }
 }

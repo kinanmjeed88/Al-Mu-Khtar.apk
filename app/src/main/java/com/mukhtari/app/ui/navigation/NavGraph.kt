@@ -7,6 +7,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mukhtari.app.ui.dashboard.DashboardScreen
 import com.mukhtari.app.ui.regions.RegionsScreen
+import com.mukhtari.app.ui.families.FamiliesScreen
+import com.mukhtari.app.ui.persons.PersonsScreen
+import com.mukhtari.app.ui.houses.HousesScreen
 
 @Composable
 fun MainNavGraph(modifier: Modifier = Modifier) {
@@ -33,13 +36,19 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
             )
         }
         composable("houses") {
-            // Placeholder
+            HousesScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable("families") {
-            // Placeholder
+            FamiliesScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable("persons") {
-            // Placeholder
+            PersonsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable("transactions") {
             // Placeholder
