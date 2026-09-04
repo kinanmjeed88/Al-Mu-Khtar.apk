@@ -32,4 +32,16 @@ class HousesViewModel(
             }
         }
     }
+
+    fun saveHouse(house: HouseEntity) {
+        viewModelScope.launch {
+            houseRepository.saveHouse(house)
+        }
+    }
+
+    fun deleteHouse(id: Long) {
+        viewModelScope.launch {
+            houseRepository.softDeleteHouse(id)
+        }
+    }
 }

@@ -10,6 +10,11 @@ import com.mukhtari.app.ui.regions.RegionsScreen
 import com.mukhtari.app.ui.families.FamiliesScreen
 import com.mukhtari.app.ui.persons.PersonsScreen
 import com.mukhtari.app.ui.houses.HousesScreen
+import com.mukhtari.app.ui.transactions.TransactionsScreen
+import com.mukhtari.app.ui.settings.SettingsScreen
+import com.mukhtari.app.ui.visitors.VisitorsScreen
+import com.mukhtari.app.ui.letters.IncomingLettersScreen
+import com.mukhtari.app.ui.letters.OutgoingLettersScreen
 
 @Composable
 fun MainNavGraph(modifier: Modifier = Modifier) {
@@ -51,10 +56,29 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
             )
         }
         composable("transactions") {
-            // Placeholder
+            TransactionsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable("settings") {
-            // Placeholder
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("visitors") {
+            VisitorsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("incoming_letters") {
+            IncomingLettersScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("outgoing_letters") {
+            OutgoingLettersScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

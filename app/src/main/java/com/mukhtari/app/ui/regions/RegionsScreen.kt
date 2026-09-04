@@ -26,15 +26,25 @@ fun RegionsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
+    var regionToEdit by remember { mutableStateOf<RegionEntity?>(null) }
+
     var regionName by remember { mutableStateOf("") }
     var governorate by remember { mutableStateOf("") }
     var district by remember { mutableStateOf("") }
     var publicCode by remember { mutableStateOf("") }
 
-    if (showAddDialog) {
+    if (showAddDialog || regionToEdit != null) {
+        val isEdit = regionToEdit != null
         AlertDialog(
-            onDismissRequest = { showAddDialog = false },
-            title = { Text("إضافة منطقة جديدة") },
+            onDismissRequest = {
+                showAddDialog = false
+                regionToEdit = null
+                regionName = ""
+                governorate = ""
+                district = ""
+                publicCode = ""
+            },
+            title = { Text(if (isEdit) "تعديل منطقة" else "إضافة منطقة جديدة") },
             text = {
                 Column {
                     OutlinedTextField(
@@ -66,7 +76,15 @@ fun RegionsScreen(
             confirmButton = {
                 TextButton(onClick = {
                     if (regionName.isNotBlank() && governorate.isNotBlank() && district.isNotBlank() && publicCode.isNotBlank()) {
-                        viewModel.saveRegion(
+                        val regionToSave = if (isEdit) {
+                            regionToEdit!!.copy(
+                                publicCode = publicCode,
+                                governorate = governorate,
+                                district = district,
+                                name = regionName,
+                                updatedAt = System.currentTimeMillis()
+                            )
+                        } else {
                             RegionEntity(
                                 publicCode = publicCode,
                                 governorate = governorate,
@@ -81,8 +99,10 @@ fun RegionsScreen(
                                 deletedAt = null,
                                 deletedReason = null
                             )
-                        )
+                        }
+                        viewModel.saveRegion(regionToSave)
                         showAddDialog = false
+                        regionToEdit = null
                         regionName = ""
                         governorate = ""
                         district = ""
@@ -93,7 +113,14 @@ fun RegionsScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) {
+                TextButton(onClick = {
+                    showAddDialog = false
+                    regionToEdit = null
+                    regionName = ""
+                    governorate = ""
+                    district = ""
+                    publicCode = ""
+                }) {
                     Text("إلغاء")
                 }
             }
@@ -135,13 +162,21 @@ fun RegionsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
-                            .clickable { /* Edit logic would go here */ }
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(text = region.name, style = MaterialTheme.typography.titleMedium)
                             Text(text = "${region.governorate} - ${region.district}", style = MaterialTheme.typography.bodyMedium)
                             
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                TextButton(onClick = {
+                                    regionName = region.name
+                                    governorate = region.governorate
+                                    district = region.district
+                                    publicCode = region.publicCode
+                                    regionToEdit = region
+                                }) {
+                                    Text("تعديل")
+                                }
                                 TextButton(onClick = { viewModel.deleteRegion(region.id) }) {
                                     Text("حذف", color = MaterialTheme.colorScheme.error)
                                 }
