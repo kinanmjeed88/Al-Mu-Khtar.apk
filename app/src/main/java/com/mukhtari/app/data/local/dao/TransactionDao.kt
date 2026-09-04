@@ -17,4 +17,10 @@ interface TransactionDao {
     
     @Query("UPDATE transactions SET person_id = :newPersonId WHERE person_id = :oldPersonId")
     suspend fun updatePersonId(oldPersonId: Long, newPersonId: Long)
+
+    @Query("SELECT * FROM transactions WHERE id = :id AND is_deleted = 0")
+    suspend fun getTransactionById(id: Long): TransactionEntity?
+
+    @Query("UPDATE transactions SET is_deleted = 1, deleted_at = :timestamp, deleted_reason = :reason WHERE id = :id")
+    suspend fun softDeleteTransaction(id: Long, timestamp: Long, reason: String)
 }

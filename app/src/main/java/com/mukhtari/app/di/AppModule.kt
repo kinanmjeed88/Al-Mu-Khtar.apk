@@ -38,6 +38,8 @@ val appModule = module {
     single { get<AppDatabase>().incomingLetterDao() }
     single { get<AppDatabase>().outgoingLetterDao() }
     single { get<AppDatabase>().visitorLogDao() }
+    single { get<AppDatabase>().transactionDao() }
+    single { get<AppDatabase>().activityLogDao() }
     
     // Use cases
     single { ArabicNormalizationUseCase() }
@@ -52,6 +54,7 @@ val appModule = module {
     single<FamilyRepository> { FamilyRepositoryImpl(get(), get(), get()) }
     single<HouseRepository> { HouseRepositoryImpl(get(), get(), get()) }
     single<ResidencyRepository> { ResidencyRepositoryImpl(get(), get(), get(), get()) }
+    single<TransactionRepository> { TransactionRepositoryImpl(get(), get(), get()) }
     single<DashboardRepository> { DashboardRepositoryImpl(get()) }
     single<IncomingLetterRepository> { IncomingLetterRepositoryImpl(get()) }
     single<OutgoingLetterRepository> { OutgoingLetterRepositoryImpl(get()) }
