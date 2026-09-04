@@ -93,7 +93,7 @@ fun PersonsScreen(
                     )
                     if (duplicateWarning != null) {
                         Text(
-                            text = duplicateWarning!!,
+                            text = duplicateWarning ?: "",
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(top = 8.dp),
                             style = MaterialTheme.typography.bodySmall
