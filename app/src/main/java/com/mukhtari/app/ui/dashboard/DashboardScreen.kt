@@ -49,12 +49,12 @@ fun DashboardScreen(
                         Text("إحصائيات سريعة", style = MaterialTheme.typography.titleLarge)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("إجمالي الأفراد: ${stats!!.totalPersons}")
-                            Text("إجمالي الدور: ${stats!!.totalHouses}")
+                            Text("إجمالي الأفراد: ${stats?.totalPersons}")
+                            Text("إجمالي الدور: ${stats?.totalHouses}")
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("ذكور: ${stats!!.totalMales} / إناث: ${stats!!.totalFemales}")
-                            Text("عائلات: ${stats!!.totalFamilies}")
+                            Text("ذكور: ${stats?.totalMales} / إناث: ${stats?.totalFemales}")
+                            Text("عائلات: ${stats?.totalFamilies}")
                         }
                     }
                 }
