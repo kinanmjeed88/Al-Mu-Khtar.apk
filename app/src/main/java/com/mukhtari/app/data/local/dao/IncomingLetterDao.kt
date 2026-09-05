@@ -20,4 +20,13 @@ interface IncomingLetterDao {
 
     @Query("UPDATE incoming_letters SET is_deleted = 1 WHERE id = :id")
     suspend fun softDelete(id: Long)
+
+    @Query("SELECT * FROM incoming_letters WHERE is_deleted = 1")
+    suspend fun getDeletedLetters(): List<IncomingLetterEntity>
+
+    @Query("UPDATE incoming_letters SET is_deleted = 0 WHERE id = :id")
+    suspend fun restoreLetter(id: Long)
+
+    @Query("DELETE FROM incoming_letters WHERE id = :id AND is_deleted = 1")
+    suspend fun hardDeleteLetter(id: Long)
 }

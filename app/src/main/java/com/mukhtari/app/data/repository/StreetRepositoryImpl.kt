@@ -27,14 +27,19 @@ class StreetRepositoryImpl(
     override suspend fun saveStreet(street: StreetEntity): Long = withContext(Dispatchers.IO) {
         db.withTransaction {
             if (street.id == 0L) {
-                val id = streetDao.insert(street)
+                val finalStreet = if (street.publicCode.isEmpty()) {
+                    street.copy(publicCode = "STR-" + java.util.UUID.randomUUID().toString().take(8).uppercase())
+                } else {
+                    street
+                }
+                val id = streetDao.insert(finalStreet)
                 activityLogRepository.logActivity(
                     actionType = "CREATE",
                     entityType = "Street",
                     entityId = id,
-                    description = "Created street ${street.name}",
+                    description = "Created street ${finalStreet.name}",
                     oldValues = null,
-                    newValues = street.toString()
+                    newValues = finalStreet.toString()
                 )
                 id
             } else {
@@ -63,6 +68,39 @@ class StreetRepositoryImpl(
                 entityId = id,
                 description = "Soft deleted street ${street?.name ?: id}",
                 oldValues = street?.toString(),
+                newValues = null
+            )
+        }
+    }
+
+    override suspend fun getDeletedStreets(): List<StreetEntity> = withContext(Dispatchers.IO) {
+        streetDao.getDeletedStreets()
+    }
+
+    override suspend fun restoreStreet(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            streetDao.restoreStreet(id)
+            val street = streetDao.getById(id)
+            activityLogRepository.logActivity(
+                actionType = "RESTORE",
+                entityType = "Street",
+                entityId = id,
+                description = "Restored street ${street?.name ?: id}",
+                oldValues = null,
+                newValues = street?.toString()
+            )
+        }
+    }
+
+    override suspend fun hardDeleteStreet(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            streetDao.hardDeleteStreet(id)
+            activityLogRepository.logActivity(
+                actionType = "HARD_DELETE",
+                entityType = "Street",
+                entityId = id,
+                description = "Hard deleted street ID $id",
+                oldValues = null,
                 newValues = null
             )
         }

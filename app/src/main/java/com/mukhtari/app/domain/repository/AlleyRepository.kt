@@ -8,4 +8,7 @@ interface AlleyRepository {
     fun getAlleysForStreet(streetId: Long): Flow<List<AlleyEntity>>
     suspend fun saveAlley(alley: AlleyEntity): Long
     suspend fun softDeleteAlley(id: Long)
+    suspend fun getDeletedAlleys(): List<AlleyEntity>
+    suspend fun restoreAlley(id: Long)
+    suspend fun hardDeleteAlley(id: Long)
 }

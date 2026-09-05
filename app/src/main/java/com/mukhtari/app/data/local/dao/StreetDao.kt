@@ -20,4 +20,13 @@ interface StreetDao {
 
     @Query("UPDATE streets SET is_deleted = 1 WHERE id = :id")
     suspend fun softDelete(id: Long)
+
+    @Query("SELECT * FROM streets WHERE is_deleted = 1")
+    suspend fun getDeletedStreets(): List<StreetEntity>
+
+    @Query("UPDATE streets SET is_deleted = 0 WHERE id = :id")
+    suspend fun restoreStreet(id: Long)
+
+    @Query("DELETE FROM streets WHERE id = :id AND is_deleted = 1")
+    suspend fun hardDeleteStreet(id: Long)
 }

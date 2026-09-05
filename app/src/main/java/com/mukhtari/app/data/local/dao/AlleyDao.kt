@@ -20,4 +20,13 @@ interface AlleyDao {
 
     @Query("UPDATE alleys SET is_deleted = 1 WHERE id = :id")
     suspend fun softDelete(id: Long)
+
+    @Query("SELECT * FROM alleys WHERE is_deleted = 1")
+    suspend fun getDeletedAlleys(): List<AlleyEntity>
+
+    @Query("UPDATE alleys SET is_deleted = 0 WHERE id = :id")
+    suspend fun restoreAlley(id: Long)
+
+    @Query("DELETE FROM alleys WHERE id = :id AND is_deleted = 1")
+    suspend fun hardDeleteAlley(id: Long)
 }

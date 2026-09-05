@@ -8,4 +8,7 @@ interface OutgoingLetterRepository {
     suspend fun getLetterById(id: Long): OutgoingLetterEntity?
     suspend fun saveLetter(letter: OutgoingLetterEntity): Long
     suspend fun softDeleteLetter(id: Long)
+    suspend fun getDeletedLetters(): List<OutgoingLetterEntity>
+    suspend fun restoreLetter(id: Long)
+    suspend fun hardDeleteLetter(id: Long)
 }

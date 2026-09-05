@@ -32,14 +32,19 @@ class PersonRepositoryImpl(
     override suspend fun savePerson(person: PersonEntity): Long = withContext(Dispatchers.IO) {
         db.withTransaction {
             if (person.id == 0L) {
-                val id = personDao.insertPerson(person)
+                val finalPerson = if (person.publicCode.isEmpty()) {
+                    person.copy(publicCode = java.util.UUID.randomUUID().toString().take(8).uppercase())
+                } else {
+                    person
+                }
+                val id = personDao.insertPerson(finalPerson)
                 activityLogRepository.logActivity(
                     actionType = "CREATE",
                     entityType = "Person",
                     entityId = id,
-                    description = "Created person ${person.fullName}",
+                    description = "Created person ${finalPerson.fullName}",
                     oldValues = null,
-                    newValues = person.toString()
+                    newValues = finalPerson.toString()
                 )
                 id
             } else {
@@ -83,6 +88,39 @@ class PersonRepositoryImpl(
                 val normalizedName = normalizationUseCase(it.fullName)
                 normalizedName.contains(normalizedQuery)
             }
+        }
+    }
+
+    override suspend fun getDeletedPersons(): List<PersonEntity> = withContext(Dispatchers.IO) {
+        personDao.getDeletedPersons()
+    }
+
+    override suspend fun restorePerson(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            personDao.restorePerson(id)
+            val person = personDao.getActivePersonById(id)
+            activityLogRepository.logActivity(
+                actionType = "RESTORE",
+                entityType = "Person",
+                entityId = id,
+                description = "Restored person ${person?.fullName ?: id}",
+                oldValues = null,
+                newValues = person?.toString()
+            )
+        }
+    }
+
+    override suspend fun hardDeletePerson(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            personDao.hardDeletePerson(id)
+            activityLogRepository.logActivity(
+                actionType = "HARD_DELETE",
+                entityType = "Person",
+                entityId = id,
+                description = "Hard deleted person ID $id",
+                oldValues = null,
+                newValues = null
+            )
         }
     }
 }

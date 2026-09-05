@@ -17,4 +17,7 @@ interface VisitorLogDao {
 
     @Query("SELECT * FROM visitors_log ORDER BY visit_date DESC")
     fun getAllVisitorLogs(): Flow<List<VisitorLogEntity>>
+
+    @Query("DELETE FROM visitors_log WHERE id = :id")
+    suspend fun hardDelete(id: Long)
 }

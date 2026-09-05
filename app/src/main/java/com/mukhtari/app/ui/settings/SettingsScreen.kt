@@ -17,7 +17,9 @@ import java.io.File
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToRecycleBin: () -> Unit = {},
+    onNavigateToActivityLog: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var crashLogContent by remember { mutableStateOf<String?>(null) }
@@ -47,6 +49,22 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            Button(
+                onClick = onNavigateToRecycleBin,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            ) {
+                Text("سلة المحذوفات")
+            }
+
+            Button(
+                onClick = onNavigateToActivityLog,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            ) {
+                Text("سجل النشاطات")
+            }
+
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
+
             Text(
                 text = "Crash Log Diagnostics Viewer",
                 style = MaterialTheme.typography.titleLarge,

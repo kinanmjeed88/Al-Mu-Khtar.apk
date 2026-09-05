@@ -7,4 +7,5 @@ interface VisitorLogRepository {
     fun getAllVisitorLogs(): Flow<List<VisitorLogEntity>>
     suspend fun getVisitorLogById(id: Long): VisitorLogEntity?
     suspend fun saveVisitorLog(visitorLog: VisitorLogEntity): Long
+    suspend fun deleteVisitorLog(id: Long)
 }

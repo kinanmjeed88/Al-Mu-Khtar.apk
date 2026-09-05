@@ -113,6 +113,29 @@ class PersonsViewModel(
         }
     }
 
+    fun createAndSelectFamily(familyName: String, onSelect: (Long) -> Unit) {
+        viewModelScope.launch {
+            val newFamily = FamilyEntity(
+                familyCode = java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                publicCode = "",
+                familyName = familyName,
+                houseId = null,
+                headOfFamilyId = null,
+                residencyDate = null,
+                residencyStatus = "resident",
+                infoSource = null,
+                notes = null,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+                deletedAt = null,
+                deletedReason = null
+            )
+            val familyId = familyRepository.saveFamily(newFamily)
+            loadFamiliesAndHouses()
+            onSelect(familyId)
+        }
+    }
+
     fun savePerson(person: PersonEntity) {
         viewModelScope.launch {
             personRepository.savePerson(person)

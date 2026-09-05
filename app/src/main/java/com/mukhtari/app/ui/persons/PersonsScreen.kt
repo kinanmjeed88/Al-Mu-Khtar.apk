@@ -38,6 +38,9 @@ fun PersonsScreen(
     var errorMsg by remember { mutableStateOf<String?>(null) }
     var expandedFamily by remember { mutableStateOf(false) }
 
+    var showAddFamilyDialog by remember { mutableStateOf(false) }
+    var newFamilyName by remember { mutableStateOf("") }
+
     if (showAddDialog || personToEdit != null) {
         val isEdit = personToEdit != null
         AlertDialog(
@@ -56,33 +59,39 @@ fun PersonsScreen(
             title = { Text(if (isEdit) "تعديل الفرد" else "إضافة فرد جديد") },
             text = {
                 Column {
-                    ExposedDropdownMenuBox(
-                        expanded = expandedFamily,
-                        onExpandedChange = { expandedFamily = !expandedFamily }
-                    ) {
-                        val selectedFamilyName = families.find { it.id == selectedFamilyId }?.familyName ?: "اختر العائلة"
-                        OutlinedTextField(
-                            value = selectedFamilyName,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("العائلة") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFamily) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor()
-                        )
-                        ExposedDropdownMenu(
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        ExposedDropdownMenuBox(
                             expanded = expandedFamily,
-                            onDismissRequest = { expandedFamily = false }
+                            onExpandedChange = { expandedFamily = !expandedFamily },
+                            modifier = Modifier.weight(1f)
                         ) {
-                            families.forEach { family ->
-                                DropdownMenuItem(
-                                    text = { Text(family.familyName ?: "عائلة ${family.familyCode}") },
-                                    onClick = {
-                                        selectedFamilyId = family.id
-                                        selectedHouseId = family.houseId
-                                        expandedFamily = false
-                                    }
-                                )
+                            val selectedFamilyName = families.find { it.id == selectedFamilyId }?.familyName ?: "اختر العائلة"
+                            OutlinedTextField(
+                                value = selectedFamilyName,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("العائلة") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFamily) },
+                                modifier = Modifier.fillMaxWidth().menuAnchor()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedFamily,
+                                onDismissRequest = { expandedFamily = false }
+                            ) {
+                                families.forEach { family ->
+                                    DropdownMenuItem(
+                                        text = { Text(family.familyName ?: "عائلة ${family.familyCode}") },
+                                        onClick = {
+                                            selectedFamilyId = family.id
+                                            selectedHouseId = family.houseId
+                                            expandedFamily = false
+                                        }
+                                    )
+                                }
                             }
+                        }
+                        IconButton(onClick = { showAddFamilyDialog = true }) {
+                            Icon(Icons.Default.Add, contentDescription = "إضافة عائلة")
                         }
                     }
 
@@ -104,7 +113,7 @@ fun PersonsScreen(
                             fullName = it
                             val candidate = PersonEntity(
                                 id = personToEdit?.id ?: 0L,
-                                publicCode = personToEdit?.publicCode ?: java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                                publicCode = personToEdit?.publicCode ?: "",
                                 fullName = fullName,
                                 fatherName = fatherName,
                                 grandfatherName = null,
@@ -209,7 +218,7 @@ fun PersonsScreen(
                             )
                         } else {
                             PersonEntity(
-                                publicCode = java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                                publicCode = "",
                                 fullName = fullName,
                                 fatherName = fatherName,
                                 grandfatherName = null,
@@ -270,6 +279,47 @@ fun PersonsScreen(
                     errorMsg = null
                     viewModel.clearDuplicateWarning()
                     viewModel.clearSuggestedFamily()
+                }) {
+                    Text("إلغاء")
+                }
+            }
+        )
+    }
+
+    if (showAddFamilyDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showAddFamilyDialog = false
+                newFamilyName = ""
+            },
+            title = { Text("إضافة عائلة جديدة") },
+            text = {
+                OutlinedTextField(
+                    value = newFamilyName,
+                    onValueChange = { newFamilyName = it },
+                    label = { Text("اسم العائلة") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newFamilyName.isNotBlank()) {
+                            viewModel.createAndSelectFamily(newFamilyName) { newId ->
+                                selectedFamilyId = newId
+                            }
+                            showAddFamilyDialog = false
+                            newFamilyName = ""
+                        }
+                    }
+                ) {
+                    Text("إضافة")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showAddFamilyDialog = false
+                    newFamilyName = ""
                 }) {
                     Text("إلغاء")
                 }

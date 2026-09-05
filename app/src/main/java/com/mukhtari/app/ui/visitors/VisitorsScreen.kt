@@ -165,6 +165,12 @@ fun VisitorsScreen(
                                 }) {
                                     Text("تعديل")
                                 }
+                                TextButton(
+                                    onClick = { viewModel.deleteVisitor(visitor.id) },
+                                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                ) {
+                                    Text("حذف")
+                                }
                             }
                         }
                     }

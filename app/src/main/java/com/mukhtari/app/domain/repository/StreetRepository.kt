@@ -8,4 +8,7 @@ interface StreetRepository {
     fun getStreetsForRegion(regionId: Long): Flow<List<StreetEntity>>
     suspend fun saveStreet(street: StreetEntity): Long
     suspend fun softDeleteStreet(id: Long)
+    suspend fun getDeletedStreets(): List<StreetEntity>
+    suspend fun restoreStreet(id: Long)
+    suspend fun hardDeleteStreet(id: Long)
 }

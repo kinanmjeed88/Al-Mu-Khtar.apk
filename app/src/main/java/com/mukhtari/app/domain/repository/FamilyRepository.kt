@@ -8,4 +8,7 @@ interface FamilyRepository {
     suspend fun getFamilyById(id: Long): FamilyEntity?
     suspend fun saveFamily(family: FamilyEntity): Long
     suspend fun softDeleteFamily(id: Long)
+    suspend fun getDeletedFamilies(): List<FamilyEntity>
+    suspend fun restoreFamily(id: Long)
+    suspend fun hardDeleteFamily(id: Long)
 }
