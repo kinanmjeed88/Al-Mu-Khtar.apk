@@ -87,10 +87,6 @@ class HousesViewModel(
                 onResult(false, "يجب اختيار الشارع")
                 return@launch
             }
-            if (house.alleyId == null) {
-                onResult(false, "يجب اختيار الزقاق")
-                return@launch
-            }
 
             // Cross-validation with database
             val street = streetRepository.getStreetById(house.streetId)
@@ -99,15 +95,17 @@ class HousesViewModel(
                 return@launch
             }
 
-            val alley = alleyRepository.getAlleyById(house.alleyId)
-            if (alley == null || alley.isDeleted == 1) {
-                onResult(false, "الزقاق المحدد غير موجود أو محذوف")
-                return@launch
-            }
+            if (house.alleyId != null) {
+                val alley = alleyRepository.getAlleyById(house.alleyId)
+                if (alley == null || alley.isDeleted == 1) {
+                    onResult(false, "الزقاق المحدد غير موجود أو محذوف")
+                    return@launch
+                }
 
-            if (alley.streetId != street.id) {
-                onResult(false, "الزقاق المحدد لا يتبع للشارع المحدد")
-                return@launch
+                if (alley.streetId != street.id) {
+                    onResult(false, "الزقاق المحدد لا يتبع للشارع المحدد")
+                    return@launch
+                }
             }
 
             saveHouse(house)
@@ -134,6 +132,46 @@ class HousesViewModel(
     fun deleteHouse(id: Long) {
         viewModelScope.launch {
             houseRepository.softDeleteHouse(id)
+        }
+    }
+
+    fun createAndSelectStreet(regionId: Long, name: String, onSelect: (Long) -> Unit) {
+        viewModelScope.launch {
+            val newStreet = StreetEntity(
+                regionId = regionId,
+                publicCode = "STR-" + java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                name = name,
+                code = null,
+                description = null,
+                notes = null,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+                deletedAt = null,
+                deletedReason = null
+            )
+            val streetId = streetRepository.saveStreet(newStreet)
+            loadStreetsForRegion(regionId)
+            onSelect(streetId)
+        }
+    }
+
+    fun createAndSelectAlley(streetId: Long, name: String, onSelect: (Long) -> Unit) {
+        viewModelScope.launch {
+            val newAlley = AlleyEntity(
+                streetId = streetId,
+                publicCode = "ALY-" + java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                name = name,
+                code = null,
+                description = null,
+                notes = null,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+                deletedAt = null,
+                deletedReason = null
+            )
+            val alleyId = alleyRepository.saveAlley(newAlley)
+            loadAlleysForStreet(streetId)
+            onSelect(alleyId)
         }
     }
 }

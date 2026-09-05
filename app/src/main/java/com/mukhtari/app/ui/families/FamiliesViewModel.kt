@@ -106,4 +106,33 @@ class FamiliesViewModel(
             familyRepository.softDeleteFamily(id)
         }
     }
+
+    fun createAndSelectHouse(houseNumber: String, onSelect: (Long) -> Unit) {
+        viewModelScope.launch {
+            val uuidStr = java.util.UUID.randomUUID().toString().take(8).uppercase()
+            val newHouse = HouseEntity(
+                publicCode = "HSE-$uuidStr",
+                internalNumber = "HSE-$uuidStr",
+                houseNumber = houseNumber,
+                streetId = null,
+                alleyId = null,
+                mahallaNumber = null,
+                detailedAddress = null,
+                photoPath = null,
+                propertyType = "owned",
+                status = "occupied",
+                ownershipType = "owned",
+                ownerName = null,
+                ownerPhone = null,
+                notes = null,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+                deletedAt = null,
+                deletedReason = null
+            )
+            val houseId = houseRepository.saveHouse(newHouse)
+            loadHouses()
+            onSelect(houseId)
+        }
+    }
 }

@@ -31,7 +31,6 @@ fun RegionsScreen(
     var regionName by remember { mutableStateOf("") }
     var governorate by remember { mutableStateOf("") }
     var district by remember { mutableStateOf("") }
-    var publicCode by remember { mutableStateOf("") }
 
     if (showAddDialog || regionToEdit != null) {
         val isEdit = regionToEdit != null
@@ -42,17 +41,10 @@ fun RegionsScreen(
                 regionName = ""
                 governorate = ""
                 district = ""
-                publicCode = ""
             },
             title = { Text(if (isEdit) "تعديل منطقة" else "إضافة منطقة جديدة") },
             text = {
                 Column {
-                    OutlinedTextField(
-                        value = publicCode,
-                        onValueChange = { publicCode = it },
-                        label = { Text("الرمز العام (Public Code)") },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                    )
                     OutlinedTextField(
                         value = regionName,
                         onValueChange = { regionName = it },
@@ -75,10 +67,9 @@ fun RegionsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    if (regionName.isNotBlank() && governorate.isNotBlank() && district.isNotBlank() && publicCode.isNotBlank()) {
+                    if (regionName.isNotBlank() && governorate.isNotBlank() && district.isNotBlank()) {
                         val regionToSave = if (isEdit) {
                             regionToEdit!!.copy(
-                                publicCode = publicCode,
                                 governorate = governorate,
                                 district = district,
                                 name = regionName,
@@ -86,7 +77,7 @@ fun RegionsScreen(
                             )
                         } else {
                             RegionEntity(
-                                publicCode = publicCode,
+                                publicCode = java.util.UUID.randomUUID().toString().take(8).uppercase(),
                                 governorate = governorate,
                                 district = district,
                                 subDistrict = "",
@@ -106,7 +97,6 @@ fun RegionsScreen(
                         regionName = ""
                         governorate = ""
                         district = ""
-                        publicCode = ""
                     }
                 }) {
                     Text("حفظ")
@@ -119,7 +109,6 @@ fun RegionsScreen(
                     regionName = ""
                     governorate = ""
                     district = ""
-                    publicCode = ""
                 }) {
                     Text("إلغاء")
                 }
@@ -172,7 +161,6 @@ fun RegionsScreen(
                                     regionName = region.name
                                     governorate = region.governorate
                                     district = region.district
-                                    publicCode = region.publicCode
                                     regionToEdit = region
                                 }) {
                                     Text("تعديل")
