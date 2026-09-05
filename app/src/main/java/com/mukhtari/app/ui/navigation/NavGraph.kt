@@ -15,6 +15,9 @@ import com.mukhtari.app.ui.settings.SettingsScreen
 import com.mukhtari.app.ui.visitors.VisitorsScreen
 import com.mukhtari.app.ui.letters.IncomingLettersScreen
 import com.mukhtari.app.ui.letters.OutgoingLettersScreen
+import com.mukhtari.app.ui.certificates.ResidencyCertificateScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 @Composable
 fun MainNavGraph(modifier: Modifier = Modifier) {
@@ -52,6 +55,24 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
         }
         composable("persons") {
             PersonsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCertificates = { personId, personName ->
+                    navController.navigate("certificates/$personId/$personName")
+                }
+            )
+        }
+        composable(
+            route = "certificates/{personId}/{personName}",
+            arguments = listOf(
+                navArgument("personId") { type = NavType.LongType },
+                navArgument("personName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val personId = backStackEntry.arguments?.getLong("personId") ?: 0L
+            val personName = backStackEntry.arguments?.getString("personName") ?: ""
+            ResidencyCertificateScreen(
+                personId = personId,
+                personName = personName,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

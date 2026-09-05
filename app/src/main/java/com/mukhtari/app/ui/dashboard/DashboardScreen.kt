@@ -47,14 +47,32 @@ fun DashboardScreen(
                 Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("إحصائيات سريعة", style = MaterialTheme.typography.titleLarge)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Row 1
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("إجمالي الأفراد: ${stats?.totalPersons}")
-                            Text("إجمالي الدور: ${stats?.totalHouses}")
+                            Text("إجمالي الأفراد: ${stats?.totalPersons}", style = MaterialTheme.typography.bodyMedium)
+                            Text("إجمالي العوائل: ${stats?.totalFamilies}", style = MaterialTheme.typography.bodyMedium)
                         }
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Row 2
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("ذكور: ${stats?.totalMales} / إناث: ${stats?.totalFemales}")
-                            Text("عائلات: ${stats?.totalFamilies}")
+                            Text("ذكور: ${stats?.totalMales}", style = MaterialTheme.typography.bodyMedium)
+                            Text("إناث: ${stats?.totalFemales}", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Row 3
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("إجمالي الدور: ${stats?.totalHouses}", style = MaterialTheme.typography.bodyMedium)
+                            Text("شاغرة: ${stats?.vacantHouses}", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Row 4
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("المعاملات النشطة: ${stats?.totalTransactions}", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }

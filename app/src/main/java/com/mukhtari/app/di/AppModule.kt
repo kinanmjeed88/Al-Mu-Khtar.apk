@@ -42,10 +42,12 @@ val appModule = module {
     single { get<AppDatabase>().visitorLogDao() }
     single { get<AppDatabase>().transactionDao() }
     single { get<AppDatabase>().activityLogDao() }
+    single { get<AppDatabase>().certificateDao() }
     
     // Use cases
     single { ArabicNormalizationUseCase() }
     single { DuplicateDetectionUseCase(get()) }
+    single { com.mukhtari.app.domain.usecase.PdfGeneratorUseCase(androidContext()) }
     
     // Infrastructure
     single { Gson() }
@@ -68,11 +70,13 @@ val appModule = module {
     single<BackupRestoreRepository> { BackupRestoreRepositoryImpl(androidContext(), "mukhtari_database", 1, 1) }
     single<ImportExportRepository> { ImportExportRepositoryImpl(get()) }
     single<ActivityLogRepository> { ActivityLogRepositoryImpl(get()) }
+    single<CertificateRepository> { CertificateRepositoryImpl(get()) }
 
     // ViewModels
     viewModel { RegionsViewModel(get()) }
     viewModel { com.mukhtari.app.ui.families.FamiliesViewModel(get(), get(), get()) }
     viewModel { com.mukhtari.app.ui.persons.PersonsViewModel(get(), get(), get(), get(), get()) }
+    viewModel { com.mukhtari.app.ui.certificates.ResidencyCertificateViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { com.mukhtari.app.ui.houses.HousesViewModel(get(), get(), get(), get()) }
     viewModel { com.mukhtari.app.ui.dashboard.DashboardViewModel(get()) }
     viewModel { com.mukhtari.app.ui.security.SecurityViewModel(get()) }

@@ -30,8 +30,9 @@ class DashboardRepositoryImpl(
             dashboardDao.getTotalMales(),
             dashboardDao.getTotalFemales(),
             dashboardDao.getNewArrivals(dateThreshold),
-            dashboardDao.getRecentDepartures(dateThreshold)
-        ) { tm, tf, na, rd -> intArrayOf(tm, tf, na, rd) }
+            dashboardDao.getRecentDepartures(dateThreshold),
+            dashboardDao.getTotalTransactions()
+        ) { tm, tf, na, rd, tt -> intArrayOf(tm, tf, na, rd, tt) }
 
         return combine(flow1, flow2) { arr1, arr2 ->
             DashboardStatistics(
@@ -43,7 +44,8 @@ class DashboardRepositoryImpl(
                 totalMales = arr2[0],
                 totalFemales = arr2[1],
                 newArrivals = arr2[2],
-                recentDepartures = arr2[3]
+                recentDepartures = arr2[3],
+                totalTransactions = arr2[4]
             )
         }
     }
