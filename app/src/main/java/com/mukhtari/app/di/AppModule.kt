@@ -30,6 +30,8 @@ val appModule = module {
     
     // DAOs
     single { get<AppDatabase>().regionDao() }
+    single { get<AppDatabase>().streetDao() }
+    single { get<AppDatabase>().alleyDao() }
     single { get<AppDatabase>().personDao() }
     single { get<AppDatabase>().familyDao() }
     single { get<AppDatabase>().houseDao() }
@@ -50,6 +52,8 @@ val appModule = module {
     
     // Repositories
     single<RegionRepository> { RegionRepositoryImpl(get(), get(), get()) }
+    single<StreetRepository> { StreetRepositoryImpl(get(), get(), get()) }
+    single<AlleyRepository> { AlleyRepositoryImpl(get(), get(), get()) }
     single<PersonRepository> { PersonRepositoryImpl(get(), get(), get(), get()) }
     single<FamilyRepository> { FamilyRepositoryImpl(get(), get(), get()) }
     single<HouseRepository> { HouseRepositoryImpl(get(), get(), get()) }
@@ -67,9 +71,9 @@ val appModule = module {
 
     // ViewModels
     viewModel { RegionsViewModel(get()) }
-    viewModel { com.mukhtari.app.ui.families.FamiliesViewModel(get()) }
-    viewModel { com.mukhtari.app.ui.persons.PersonsViewModel(get(), get()) }
-    viewModel { com.mukhtari.app.ui.houses.HousesViewModel(get()) }
+    viewModel { com.mukhtari.app.ui.families.FamiliesViewModel(get(), get(), get()) }
+    viewModel { com.mukhtari.app.ui.persons.PersonsViewModel(get(), get(), get(), get(), get()) }
+    viewModel { com.mukhtari.app.ui.houses.HousesViewModel(get(), get(), get(), get()) }
     viewModel { com.mukhtari.app.ui.dashboard.DashboardViewModel(get()) }
     viewModel { com.mukhtari.app.ui.security.SecurityViewModel(get()) }
     viewModel { TransactionsViewModel(get()) }

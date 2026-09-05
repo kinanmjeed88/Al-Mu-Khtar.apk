@@ -22,24 +22,142 @@ fun HousesScreen(
 ) {
     val houses by viewModel.houses.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val regions by viewModel.regions.collectAsState()
+    val streets by viewModel.streets.collectAsState()
+    val alleys by viewModel.alleys.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var houseToEdit by remember { mutableStateOf<HouseEntity?>(null) }
     var houseNumber by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("occupied") }
+    var selectedRegionId by remember { mutableStateOf<Long?>(null) }
+    var selectedStreetId by remember { mutableStateOf<Long?>(null) }
+    var selectedAlleyId by remember { mutableStateOf<Long?>(null) }
+
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    var expandedRegion by remember { mutableStateOf(false) }
+    var expandedStreet by remember { mutableStateOf(false) }
+    var expandedAlley by remember { mutableStateOf(false) }
 
     if (showAddDialog || houseToEdit != null) {
         val isEdit = houseToEdit != null
+
         AlertDialog(
             onDismissRequest = {
                 showAddDialog = false
                 houseToEdit = null
                 houseNumber = ""
                 status = "occupied"
+                selectedRegionId = null
+                selectedStreetId = null
+                selectedAlleyId = null
+                errorMsg = null
+                viewModel.clearDependentSelections()
             },
             title = { Text(if (isEdit) "تعديل الدار" else "إضافة دار جديدة") },
             text = {
                 Column {
+                    ExposedDropdownMenuBox(
+                        expanded = expandedRegion,
+                        onExpandedChange = { expandedRegion = !expandedRegion }
+                    ) {
+                        val selectedRegionName = regions.find { it.id == selectedRegionId }?.name ?: "اختر المنطقة"
+                        OutlinedTextField(
+                            value = selectedRegionName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("المنطقة") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedRegion) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedRegion,
+                            onDismissRequest = { expandedRegion = false }
+                        ) {
+                            regions.forEach { region ->
+                                DropdownMenuItem(
+                                    text = { Text(region.name) },
+                                    onClick = {
+                                        selectedRegionId = region.id
+                                        selectedStreetId = null
+                                        selectedAlleyId = null
+                                        expandedRegion = false
+                                        viewModel.loadStreetsForRegion(region.id)
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ExposedDropdownMenuBox(
+                        expanded = expandedStreet,
+                        onExpandedChange = { if (selectedRegionId != null) expandedStreet = !expandedStreet }
+                    ) {
+                        val selectedStreetName = streets.find { it.id == selectedStreetId }?.name ?: "اختر الشارع"
+                        OutlinedTextField(
+                            value = selectedStreetName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("الشارع") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedStreet) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            enabled = selectedRegionId != null
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedStreet,
+                            onDismissRequest = { expandedStreet = false }
+                        ) {
+                            streets.forEach { street ->
+                                DropdownMenuItem(
+                                    text = { Text(street.name) },
+                                    onClick = {
+                                        selectedStreetId = street.id
+                                        selectedAlleyId = null
+                                        expandedStreet = false
+                                        viewModel.loadAlleysForStreet(street.id)
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ExposedDropdownMenuBox(
+                        expanded = expandedAlley,
+                        onExpandedChange = { if (selectedStreetId != null) expandedAlley = !expandedAlley }
+                    ) {
+                        val selectedAlleyName = alleys.find { it.id == selectedAlleyId }?.name ?: "اختر الزقاق"
+                        OutlinedTextField(
+                            value = selectedAlleyName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("الزقاق") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAlley) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            enabled = selectedStreetId != null
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedAlley,
+                            onDismissRequest = { expandedAlley = false }
+                        ) {
+                            alleys.forEach { alley ->
+                                DropdownMenuItem(
+                                    text = { Text(alley.name) },
+                                    onClick = {
+                                        selectedAlleyId = alley.id
+                                        expandedAlley = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     OutlinedTextField(
                         value = houseNumber,
                         onValueChange = { houseNumber = it },
@@ -52,6 +170,15 @@ fun HousesScreen(
                         label = { Text("الحالة (occupied, vacant, etc)") },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     )
+
+                    if (errorMsg != null) {
+                        Text(
+                            text = errorMsg!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             },
             confirmButton = {
@@ -61,6 +188,8 @@ fun HousesScreen(
                             houseToEdit!!.copy(
                                 houseNumber = houseNumber,
                                 status = status,
+                                streetId = selectedStreetId,
+                                alleyId = selectedAlleyId,
                                 updatedAt = System.currentTimeMillis()
                             )
                         } else {
@@ -68,8 +197,8 @@ fun HousesScreen(
                                 publicCode = houseNumber,
                                 internalNumber = houseNumber,
                                 houseNumber = houseNumber,
-                                streetId = null,
-                                alleyId = null,
+                                streetId = selectedStreetId,
+                                alleyId = selectedAlleyId,
                                 mahallaNumber = null,
                                 detailedAddress = null,
                                 photoPath = null,
@@ -85,11 +214,24 @@ fun HousesScreen(
                                 deletedReason = null
                             )
                         }
-                        viewModel.saveHouse(houseToSave)
-                        showAddDialog = false
-                        houseToEdit = null
-                        houseNumber = ""
-                        status = "occupied"
+
+                        viewModel.validateAndSaveHouse(houseToSave) { success, error ->
+                            if (success) {
+                                showAddDialog = false
+                                houseToEdit = null
+                                houseNumber = ""
+                                status = "occupied"
+                                selectedRegionId = null
+                                selectedStreetId = null
+                                selectedAlleyId = null
+                                errorMsg = null
+                                viewModel.clearDependentSelections()
+                            } else {
+                                errorMsg = error
+                            }
+                        }
+                    } else {
+                        errorMsg = "يرجى تعبئة جميع الحقول المطلوبة"
                     }
                 }) {
                     Text("حفظ")
@@ -101,6 +243,11 @@ fun HousesScreen(
                     houseToEdit = null
                     houseNumber = ""
                     status = "occupied"
+                    selectedRegionId = null
+                    selectedStreetId = null
+                    selectedAlleyId = null
+                    errorMsg = null
+                    viewModel.clearDependentSelections()
                 }) {
                     Text("إلغاء")
                 }
@@ -147,6 +294,8 @@ fun HousesScreen(
                                 TextButton(onClick = {
                                     houseNumber = house.houseNumber
                                     status = house.status
+                                    selectedStreetId = house.streetId
+                                    selectedAlleyId = house.alleyId
                                     houseToEdit = house
                                 }) {
                                     Text("تعديل")
