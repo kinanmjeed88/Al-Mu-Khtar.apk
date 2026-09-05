@@ -18,6 +18,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun PersonsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToCertificates: (Long, String) -> Unit = { _, _ -> },
     viewModel: PersonsViewModel = koinViewModel()
 ) {
     val persons by viewModel.persons.collectAsState()
@@ -342,6 +343,9 @@ fun PersonsScreen(
                                         personToEdit = person
                                     }) {
                                         Text("تعديل")
+                                    }
+                                    TextButton(onClick = { onNavigateToCertificates(person.id, person.fullName) }) {
+                                        Text("تأييد سكن")
                                     }
                                     TextButton(onClick = { viewModel.deletePerson(person.id) }) {
                                         Text("حذف", color = MaterialTheme.colorScheme.error)

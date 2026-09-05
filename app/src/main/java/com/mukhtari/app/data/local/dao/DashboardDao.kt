@@ -32,4 +32,7 @@ interface DashboardDao {
 
     @Query("SELECT COUNT(*) FROM residencies WHERE (end_date IS NOT NULL AND end_date != '') AND end_date > :timestampThreshold")
     fun getRecentDepartures(timestampThreshold: String): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE is_deleted = 0")
+    fun getTotalTransactions(): Flow<Int>
 }

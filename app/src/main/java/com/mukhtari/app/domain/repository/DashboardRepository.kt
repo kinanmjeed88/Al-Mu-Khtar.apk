@@ -11,7 +11,8 @@ data class DashboardStatistics(
     val totalMales: Int,
     val totalFemales: Int,
     val newArrivals: Int,
-    val recentDepartures: Int
+    val recentDepartures: Int,
+    val totalTransactions: Int
 )
 
 interface DashboardRepository {
