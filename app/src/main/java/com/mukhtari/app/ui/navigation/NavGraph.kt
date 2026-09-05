@@ -37,6 +37,9 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
                 onNavigateToFamilies = { navController.navigate("families") },
                 onNavigateToPersons = { navController.navigate("persons") },
                 onNavigateToTransactions = { navController.navigate("transactions") },
+                onNavigateToVisitors = { navController.navigate("visitors") },
+                onNavigateToIncomingLetters = { navController.navigate("incoming_letters") },
+                onNavigateToOutgoingLetters = { navController.navigate("outgoing_letters") },
                 onNavigateToSettings = { navController.navigate("settings") }
             )
         }

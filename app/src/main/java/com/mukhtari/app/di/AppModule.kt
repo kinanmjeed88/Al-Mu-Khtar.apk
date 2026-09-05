@@ -84,6 +84,6 @@ val appModule = module {
     viewModel { IncomingLettersViewModel(get()) }
     viewModel { OutgoingLettersViewModel(get()) }
     viewModel { VisitorsViewModel(get()) }
-    viewModel { com.mukhtari.app.ui.recyclebin.RecycleBinViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { com.mukhtari.app.ui.recyclebin.RecycleBinViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { com.mukhtari.app.ui.activitylog.ActivityLogViewModel(get()) }
 }
