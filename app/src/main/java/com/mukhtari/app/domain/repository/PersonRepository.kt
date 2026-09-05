@@ -9,4 +9,8 @@ interface PersonRepository {
     suspend fun savePerson(person: PersonEntity): Long
     suspend fun softDeletePerson(id: Long)
     suspend fun searchPersons(query: String): List<PersonEntity>
+
+    suspend fun getDeletedPersons(): List<PersonEntity>
+    suspend fun restorePerson(id: Long)
+    suspend fun hardDeletePerson(id: Long)
 }

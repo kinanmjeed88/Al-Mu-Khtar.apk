@@ -67,4 +67,37 @@ class FamilyRepositoryImpl(
             )
         }
     }
+
+    override suspend fun getDeletedFamilies(): List<FamilyEntity> = withContext(Dispatchers.IO) {
+        familyDao.getDeletedFamilies()
+    }
+
+    override suspend fun restoreFamily(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            familyDao.restoreFamily(id)
+            val family = familyDao.getById(id)
+            activityLogRepository.logActivity(
+                actionType = "RESTORE",
+                entityType = "Family",
+                entityId = id,
+                description = "Restored family ${family?.familyCode ?: id}",
+                oldValues = null,
+                newValues = family?.toString()
+            )
+        }
+    }
+
+    override suspend fun hardDeleteFamily(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            familyDao.hardDeleteFamily(id)
+            activityLogRepository.logActivity(
+                actionType = "HARD_DELETE",
+                entityType = "Family",
+                entityId = id,
+                description = "Hard deleted family ID $id",
+                oldValues = null,
+                newValues = null
+            )
+        }
+    }
 }

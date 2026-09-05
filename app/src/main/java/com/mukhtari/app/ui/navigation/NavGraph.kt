@@ -16,6 +16,8 @@ import com.mukhtari.app.ui.visitors.VisitorsScreen
 import com.mukhtari.app.ui.letters.IncomingLettersScreen
 import com.mukhtari.app.ui.letters.OutgoingLettersScreen
 import com.mukhtari.app.ui.certificates.ResidencyCertificateScreen
+import com.mukhtari.app.ui.recyclebin.RecycleBinScreen
+import com.mukhtari.app.ui.activitylog.ActivityLogScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
@@ -83,7 +85,9 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
         }
         composable("settings") {
             SettingsScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToRecycleBin = { navController.navigate("recycle_bin") },
+                onNavigateToActivityLog = { navController.navigate("activity_log") }
             )
         }
         composable("visitors") {
@@ -98,6 +102,16 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
         }
         composable("outgoing_letters") {
             OutgoingLettersScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("recycle_bin") {
+            RecycleBinScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("activity_log") {
+            ActivityLogScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

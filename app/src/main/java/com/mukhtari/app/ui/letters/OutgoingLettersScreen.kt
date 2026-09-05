@@ -83,7 +83,7 @@ fun OutgoingLettersScreen(
                             )
                         } else {
                             OutgoingLetterEntity(
-                                publicCode = java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                                publicCode = "",
                                 letterNumber = letterNumber,
                                 letterDate = letterDate,
                                 recipient = recipient,

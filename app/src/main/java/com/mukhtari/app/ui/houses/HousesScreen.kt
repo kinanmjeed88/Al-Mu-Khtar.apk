@@ -36,6 +36,9 @@ fun HousesScreen(
 
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
+    var showAddRegionDialog by remember { mutableStateOf(false) }
+    var newRegionName by remember { mutableStateOf("") }
+
     var showAddStreetDialog by remember { mutableStateOf(false) }
     var newStreetName by remember { mutableStateOf("") }
 
@@ -64,35 +67,41 @@ fun HousesScreen(
             title = { Text(if (isEdit) "تعديل الدار" else "إضافة دار جديدة") },
             text = {
                 Column {
-                    ExposedDropdownMenuBox(
-                        expanded = expandedRegion,
-                        onExpandedChange = { expandedRegion = !expandedRegion }
-                    ) {
-                        val selectedRegionName = regions.find { it.id == selectedRegionId }?.name ?: "اختر المنطقة"
-                        OutlinedTextField(
-                            value = selectedRegionName,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("المنطقة") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedRegion) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor()
-                        )
-                        ExposedDropdownMenu(
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        ExposedDropdownMenuBox(
                             expanded = expandedRegion,
-                            onDismissRequest = { expandedRegion = false }
+                            onExpandedChange = { expandedRegion = !expandedRegion },
+                            modifier = Modifier.weight(1f)
                         ) {
-                            regions.forEach { region ->
-                                DropdownMenuItem(
-                                    text = { Text(region.name) },
-                                    onClick = {
-                                        selectedRegionId = region.id
-                                        selectedStreetId = null
-                                        selectedAlleyId = null
-                                        expandedRegion = false
-                                        viewModel.loadStreetsForRegion(region.id)
-                                    }
-                                )
+                            val selectedRegionName = regions.find { it.id == selectedRegionId }?.name ?: "اختر المنطقة"
+                            OutlinedTextField(
+                                value = selectedRegionName,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("المنطقة") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedRegion) },
+                                modifier = Modifier.fillMaxWidth().menuAnchor()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedRegion,
+                                onDismissRequest = { expandedRegion = false }
+                            ) {
+                                regions.forEach { region ->
+                                    DropdownMenuItem(
+                                        text = { Text(region.name) },
+                                        onClick = {
+                                            selectedRegionId = region.id
+                                            selectedStreetId = null
+                                            selectedAlleyId = null
+                                            expandedRegion = false
+                                            viewModel.loadStreetsForRegion(region.id)
+                                        }
+                                    )
+                                }
                             }
+                        }
+                        IconButton(onClick = { showAddRegionDialog = true }) {
+                            Icon(Icons.Default.Add, contentDescription = "إضافة منطقة")
                         }
                     }
 
@@ -270,6 +279,50 @@ fun HousesScreen(
                     selectedAlleyId = null
                     errorMsg = null
                     viewModel.clearDependentSelections()
+                }) {
+                    Text("إلغاء")
+                }
+            }
+        )
+    }
+
+    if (showAddRegionDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showAddRegionDialog = false
+                newRegionName = ""
+            },
+            title = { Text("إضافة منطقة جديدة") },
+            text = {
+                OutlinedTextField(
+                    value = newRegionName,
+                    onValueChange = { newRegionName = it },
+                    label = { Text("اسم المنطقة") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newRegionName.isNotBlank()) {
+                            viewModel.createAndSelectRegion(newRegionName) { newId ->
+                                selectedRegionId = newId
+                                selectedStreetId = null
+                                selectedAlleyId = null
+                                viewModel.loadStreetsForRegion(newId)
+                            }
+                            showAddRegionDialog = false
+                            newRegionName = ""
+                        }
+                    }
+                ) {
+                    Text("إضافة")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showAddRegionDialog = false
+                    newRegionName = ""
                 }) {
                     Text("إلغاء")
                 }

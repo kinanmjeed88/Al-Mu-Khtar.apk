@@ -67,4 +67,37 @@ class HouseRepositoryImpl(
             )
         }
     }
+
+    override suspend fun getDeletedHouses(): List<HouseEntity> = withContext(Dispatchers.IO) {
+        houseDao.getDeletedHouses()
+    }
+
+    override suspend fun restoreHouse(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            houseDao.restoreHouse(id)
+            val house = houseDao.getById(id)
+            activityLogRepository.logActivity(
+                actionType = "RESTORE",
+                entityType = "House",
+                entityId = id,
+                description = "Restored house ${house?.houseNumber ?: id}",
+                oldValues = null,
+                newValues = house?.toString()
+            )
+        }
+    }
+
+    override suspend fun hardDeleteHouse(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            houseDao.hardDeleteHouse(id)
+            activityLogRepository.logActivity(
+                actionType = "HARD_DELETE",
+                entityType = "House",
+                entityId = id,
+                description = "Hard deleted house ID $id",
+                oldValues = null,
+                newValues = null
+            )
+        }
+    }
 }

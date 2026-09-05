@@ -24,4 +24,8 @@ class VisitorLogRepositoryImpl(
             visitorLog.id
         }
     }
+
+    override suspend fun deleteVisitorLog(id: Long) {
+        visitorLogDao.hardDelete(id)
+    }
 }

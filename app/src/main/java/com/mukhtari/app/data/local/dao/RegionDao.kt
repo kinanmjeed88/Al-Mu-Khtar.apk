@@ -25,4 +25,10 @@ interface RegionDao {
 
     @Query("UPDATE regions SET is_deleted = 1, deleted_at = :deletedAt, deleted_reason = :reason WHERE id = :id")
     suspend fun softDeleteRegion(id: Long, deletedAt: Long, reason: String?)
+
+    @Query("UPDATE regions SET is_deleted = 0, deleted_at = NULL, deleted_reason = NULL WHERE id = :id")
+    suspend fun restoreRegion(id: Long)
+
+    @Query("DELETE FROM regions WHERE id = :id AND is_deleted = 1")
+    suspend fun hardDeleteRegion(id: Long)
 }

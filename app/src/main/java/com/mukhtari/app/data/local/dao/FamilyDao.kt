@@ -20,4 +20,13 @@ interface FamilyDao {
 
     @Query("UPDATE families SET is_deleted = 1 WHERE id = :id")
     suspend fun softDelete(id: Long)
+
+    @Query("SELECT * FROM families WHERE is_deleted = 1")
+    suspend fun getDeletedFamilies(): List<FamilyEntity>
+
+    @Query("UPDATE families SET is_deleted = 0 WHERE id = :id")
+    suspend fun restoreFamily(id: Long)
+
+    @Query("DELETE FROM families WHERE id = :id AND is_deleted = 1")
+    suspend fun hardDeleteFamily(id: Long)
 }

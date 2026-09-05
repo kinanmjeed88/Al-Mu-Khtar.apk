@@ -18,7 +18,12 @@ class OutgoingLetterRepositoryImpl(
 
     override suspend fun saveLetter(letter: OutgoingLetterEntity): Long {
         return if (letter.id == 0L) {
-            outgoingLetterDao.insert(letter)
+            val finalLetter = if (letter.publicCode.isEmpty()) {
+                letter.copy(publicCode = java.util.UUID.randomUUID().toString().take(8).uppercase())
+            } else {
+                letter
+            }
+            outgoingLetterDao.insert(finalLetter)
         } else {
             outgoingLetterDao.update(letter)
             letter.id
@@ -27,5 +32,17 @@ class OutgoingLetterRepositoryImpl(
 
     override suspend fun softDeleteLetter(id: Long) {
         outgoingLetterDao.softDelete(id)
+    }
+
+    override suspend fun getDeletedLetters(): List<OutgoingLetterEntity> {
+        return outgoingLetterDao.getDeletedLetters()
+    }
+
+    override suspend fun restoreLetter(id: Long) {
+        outgoingLetterDao.restoreLetter(id)
+    }
+
+    override suspend fun hardDeleteLetter(id: Long) {
+        outgoingLetterDao.hardDeleteLetter(id)
     }
 }

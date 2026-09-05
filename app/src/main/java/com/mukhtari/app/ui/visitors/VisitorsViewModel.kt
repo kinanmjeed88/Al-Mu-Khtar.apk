@@ -38,4 +38,10 @@ class VisitorsViewModel(
             visitorLogRepository.saveVisitorLog(visitor)
         }
     }
+
+    fun deleteVisitor(id: Long) {
+        viewModelScope.launch {
+            visitorLogRepository.deleteVisitorLog(id)
+        }
+    }
 }

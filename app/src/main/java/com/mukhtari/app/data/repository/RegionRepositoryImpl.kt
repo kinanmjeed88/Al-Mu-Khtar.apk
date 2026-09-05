@@ -65,4 +65,37 @@ class RegionRepositoryImpl(
             )
         }
     }
+
+    override suspend fun getDeletedRegions(): List<RegionEntity> = withContext(Dispatchers.IO) {
+        regionDao.getDeletedRegions()
+    }
+
+    override suspend fun restoreRegion(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            regionDao.restoreRegion(id)
+            val region = regionDao.getActiveRegionById(id)
+            activityLogRepository.logActivity(
+                actionType = "RESTORE",
+                entityType = "Region",
+                entityId = id,
+                description = "Restored region ${region?.name ?: id}",
+                oldValues = null,
+                newValues = region?.toString()
+            )
+        }
+    }
+
+    override suspend fun hardDeleteRegion(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            regionDao.hardDeleteRegion(id)
+            activityLogRepository.logActivity(
+                actionType = "HARD_DELETE",
+                entityType = "Region",
+                entityId = id,
+                description = "Hard deleted region ID $id",
+                oldValues = null,
+                newValues = null
+            )
+        }
+    }
 }

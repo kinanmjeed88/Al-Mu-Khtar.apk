@@ -27,14 +27,19 @@ class AlleyRepositoryImpl(
     override suspend fun saveAlley(alley: AlleyEntity): Long = withContext(Dispatchers.IO) {
         db.withTransaction {
             if (alley.id == 0L) {
-                val id = alleyDao.insert(alley)
+                val finalAlley = if (alley.publicCode.isEmpty()) {
+                    alley.copy(publicCode = "ALY-" + java.util.UUID.randomUUID().toString().take(8).uppercase())
+                } else {
+                    alley
+                }
+                val id = alleyDao.insert(finalAlley)
                 activityLogRepository.logActivity(
                     actionType = "CREATE",
                     entityType = "Alley",
                     entityId = id,
-                    description = "Created alley ${alley.name}",
+                    description = "Created alley ${finalAlley.name}",
                     oldValues = null,
-                    newValues = alley.toString()
+                    newValues = finalAlley.toString()
                 )
                 id
             } else {
@@ -63,6 +68,39 @@ class AlleyRepositoryImpl(
                 entityId = id,
                 description = "Soft deleted alley ${alley?.name ?: id}",
                 oldValues = alley?.toString(),
+                newValues = null
+            )
+        }
+    }
+
+    override suspend fun getDeletedAlleys(): List<AlleyEntity> = withContext(Dispatchers.IO) {
+        alleyDao.getDeletedAlleys()
+    }
+
+    override suspend fun restoreAlley(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            alleyDao.restoreAlley(id)
+            val alley = alleyDao.getById(id)
+            activityLogRepository.logActivity(
+                actionType = "RESTORE",
+                entityType = "Alley",
+                entityId = id,
+                description = "Restored alley ${alley?.name ?: id}",
+                oldValues = null,
+                newValues = alley?.toString()
+            )
+        }
+    }
+
+    override suspend fun hardDeleteAlley(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            alleyDao.hardDeleteAlley(id)
+            activityLogRepository.logActivity(
+                actionType = "HARD_DELETE",
+                entityType = "Alley",
+                entityId = id,
+                description = "Hard deleted alley ID $id",
+                oldValues = null,
                 newValues = null
             )
         }

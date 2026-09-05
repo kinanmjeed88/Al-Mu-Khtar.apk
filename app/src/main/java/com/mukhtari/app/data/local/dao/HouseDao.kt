@@ -20,4 +20,13 @@ interface HouseDao {
 
     @Query("UPDATE houses SET is_deleted = 1 WHERE id = :id")
     suspend fun softDelete(id: Long)
+
+    @Query("SELECT * FROM houses WHERE is_deleted = 1")
+    suspend fun getDeletedHouses(): List<HouseEntity>
+
+    @Query("UPDATE houses SET is_deleted = 0 WHERE id = :id")
+    suspend fun restoreHouse(id: Long)
+
+    @Query("DELETE FROM houses WHERE id = :id AND is_deleted = 1")
+    suspend fun hardDeleteHouse(id: Long)
 }

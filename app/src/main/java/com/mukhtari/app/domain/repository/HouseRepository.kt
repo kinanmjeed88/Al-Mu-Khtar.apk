@@ -8,4 +8,7 @@ interface HouseRepository {
     suspend fun getHouseById(id: Long): HouseEntity?
     suspend fun saveHouse(house: HouseEntity): Long
     suspend fun softDeleteHouse(id: Long)
+    suspend fun getDeletedHouses(): List<HouseEntity>
+    suspend fun restoreHouse(id: Long)
+    suspend fun hardDeleteHouse(id: Long)
 }

@@ -82,28 +82,33 @@ class HousesViewModel(
 
     fun validateAndSaveHouse(house: HouseEntity, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
-            // Basic validation
-            if (house.streetId == null) {
-                onResult(false, "يجب اختيار الشارع")
-                return@launch
-            }
+            // Allow streetId and alleyId to be null as per schema
 
-            // Cross-validation with database
-            val street = streetRepository.getStreetById(house.streetId)
-            if (street == null || street.isDeleted == 1) {
-                onResult(false, "الشارع المحدد غير موجود أو محذوف")
-                return@launch
-            }
-
-            if (house.alleyId != null) {
-                val alley = alleyRepository.getAlleyById(house.alleyId)
-                if (alley == null || alley.isDeleted == 1) {
-                    onResult(false, "الزقاق المحدد غير موجود أو محذوف")
+            if (house.streetId != null) {
+                val street = streetRepository.getStreetById(house.streetId)
+                if (street == null || street.isDeleted == 1) {
+                    onResult(false, "الشارع المحدد غير موجود أو محذوف")
                     return@launch
                 }
 
-                if (alley.streetId != street.id) {
-                    onResult(false, "الزقاق المحدد لا يتبع للشارع المحدد")
+                if (house.alleyId != null) {
+                    val alley = alleyRepository.getAlleyById(house.alleyId)
+                    if (alley == null || alley.isDeleted == 1) {
+                        onResult(false, "الزقاق المحدد غير موجود أو محذوف")
+                        return@launch
+                    }
+
+                    if (alley.streetId != street.id) {
+                        onResult(false, "الزقاق المحدد لا يتبع للشارع المحدد")
+                        return@launch
+                    }
+                }
+            } else if (house.alleyId != null) {
+                // If alley is selected but no street is selected, that might be a problem logically,
+                // but we check if alley exists.
+                val alley = alleyRepository.getAlleyById(house.alleyId)
+                if (alley == null || alley.isDeleted == 1) {
+                    onResult(false, "الزقاق المحدد غير موجود أو محذوف")
                     return@launch
                 }
             }
@@ -135,11 +140,33 @@ class HousesViewModel(
         }
     }
 
+    fun createAndSelectRegion(name: String, onSelect: (Long) -> Unit) {
+        viewModelScope.launch {
+            val newRegion = RegionEntity(
+                publicCode = "",
+                governorate = "",
+                district = "",
+                subDistrict = "",
+                mahalla = "",
+                name = name,
+                description = null,
+                notes = null,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+                deletedAt = null,
+                deletedReason = null
+            )
+            val regionId = regionRepository.saveRegion(newRegion)
+            loadRegions()
+            onSelect(regionId)
+        }
+    }
+
     fun createAndSelectStreet(regionId: Long, name: String, onSelect: (Long) -> Unit) {
         viewModelScope.launch {
             val newStreet = StreetEntity(
                 regionId = regionId,
-                publicCode = "STR-" + java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                publicCode = "",
                 name = name,
                 code = null,
                 description = null,
@@ -159,7 +186,7 @@ class HousesViewModel(
         viewModelScope.launch {
             val newAlley = AlleyEntity(
                 streetId = streetId,
-                publicCode = "ALY-" + java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                publicCode = "",
                 name = name,
                 code = null,
                 description = null,
