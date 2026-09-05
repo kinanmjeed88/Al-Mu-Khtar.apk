@@ -36,6 +36,12 @@ fun HousesScreen(
 
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
+    var showAddStreetDialog by remember { mutableStateOf(false) }
+    var newStreetName by remember { mutableStateOf("") }
+
+    var showAddAlleyDialog by remember { mutableStateOf(false) }
+    var newAlleyName by remember { mutableStateOf("") }
+
     var expandedRegion by remember { mutableStateOf(false) }
     var expandedStreet by remember { mutableStateOf(false) }
     var expandedAlley by remember { mutableStateOf(false) }
@@ -92,66 +98,82 @@ fun HousesScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    ExposedDropdownMenuBox(
-                        expanded = expandedStreet,
-                        onExpandedChange = { if (selectedRegionId != null) expandedStreet = !expandedStreet }
-                    ) {
-                        val selectedStreetName = streets.find { it.id == selectedStreetId }?.name ?: "اختر الشارع"
-                        OutlinedTextField(
-                            value = selectedStreetName,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("الشارع") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedStreet) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor(),
-                            enabled = selectedRegionId != null
-                        )
-                        ExposedDropdownMenu(
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        ExposedDropdownMenuBox(
                             expanded = expandedStreet,
-                            onDismissRequest = { expandedStreet = false }
+                            onExpandedChange = { if (selectedRegionId != null) expandedStreet = !expandedStreet },
+                            modifier = Modifier.weight(1f)
                         ) {
-                            streets.forEach { street ->
-                                DropdownMenuItem(
-                                    text = { Text(street.name) },
-                                    onClick = {
-                                        selectedStreetId = street.id
-                                        selectedAlleyId = null
-                                        expandedStreet = false
-                                        viewModel.loadAlleysForStreet(street.id)
-                                    }
-                                )
+                            val selectedStreetName = streets.find { it.id == selectedStreetId }?.name ?: "اختر الشارع"
+                            OutlinedTextField(
+                                value = selectedStreetName,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("الشارع") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedStreet) },
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                enabled = selectedRegionId != null
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedStreet,
+                                onDismissRequest = { expandedStreet = false }
+                            ) {
+                                streets.forEach { street ->
+                                    DropdownMenuItem(
+                                        text = { Text(street.name) },
+                                        onClick = {
+                                            selectedStreetId = street.id
+                                            selectedAlleyId = null
+                                            expandedStreet = false
+                                            viewModel.loadAlleysForStreet(street.id)
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        if (selectedRegionId != null) {
+                            IconButton(onClick = { showAddStreetDialog = true }) {
+                                Icon(Icons.Default.Add, contentDescription = "إضافة شارع")
                             }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    ExposedDropdownMenuBox(
-                        expanded = expandedAlley,
-                        onExpandedChange = { if (selectedStreetId != null) expandedAlley = !expandedAlley }
-                    ) {
-                        val selectedAlleyName = alleys.find { it.id == selectedAlleyId }?.name ?: "اختر الزقاق"
-                        OutlinedTextField(
-                            value = selectedAlleyName,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("الزقاق") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAlley) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor(),
-                            enabled = selectedStreetId != null
-                        )
-                        ExposedDropdownMenu(
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        ExposedDropdownMenuBox(
                             expanded = expandedAlley,
-                            onDismissRequest = { expandedAlley = false }
+                            onExpandedChange = { if (selectedStreetId != null) expandedAlley = !expandedAlley },
+                            modifier = Modifier.weight(1f)
                         ) {
-                            alleys.forEach { alley ->
-                                DropdownMenuItem(
-                                    text = { Text(alley.name) },
-                                    onClick = {
-                                        selectedAlleyId = alley.id
-                                        expandedAlley = false
-                                    }
-                                )
+                            val selectedAlleyName = alleys.find { it.id == selectedAlleyId }?.name ?: "اختر الزقاق"
+                            OutlinedTextField(
+                                value = selectedAlleyName,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("الزقاق") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAlley) },
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                enabled = selectedStreetId != null
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedAlley,
+                                onDismissRequest = { expandedAlley = false }
+                            ) {
+                                alleys.forEach { alley ->
+                                    DropdownMenuItem(
+                                        text = { Text(alley.name) },
+                                        onClick = {
+                                            selectedAlleyId = alley.id
+                                            expandedAlley = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        if (selectedStreetId != null) {
+                            IconButton(onClick = { showAddAlleyDialog = true }) {
+                                Icon(Icons.Default.Add, contentDescription = "إضافة زقاق")
                             }
                         }
                     }
@@ -194,8 +216,8 @@ fun HousesScreen(
                             )
                         } else {
                             HouseEntity(
-                                publicCode = houseNumber,
-                                internalNumber = houseNumber,
+                                publicCode = "HSE-" + java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                                internalNumber = "HSE-" + java.util.UUID.randomUUID().toString().take(8).uppercase(),
                                 houseNumber = houseNumber,
                                 streetId = selectedStreetId,
                                 alleyId = selectedAlleyId,
@@ -248,6 +270,90 @@ fun HousesScreen(
                     selectedAlleyId = null
                     errorMsg = null
                     viewModel.clearDependentSelections()
+                }) {
+                    Text("إلغاء")
+                }
+            }
+        )
+    }
+
+    if (showAddStreetDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showAddStreetDialog = false
+                newStreetName = ""
+            },
+            title = { Text("إضافة شارع جديد") },
+            text = {
+                OutlinedTextField(
+                    value = newStreetName,
+                    onValueChange = { newStreetName = it },
+                    label = { Text("اسم الشارع") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newStreetName.isNotBlank() && selectedRegionId != null) {
+                            viewModel.createAndSelectStreet(selectedRegionId!!, newStreetName) { newId ->
+                                selectedStreetId = newId
+                                selectedAlleyId = null
+                                viewModel.loadAlleysForStreet(newId)
+                            }
+                            showAddStreetDialog = false
+                            newStreetName = ""
+                        }
+                    }
+                ) {
+                    Text("إضافة")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showAddStreetDialog = false
+                    newStreetName = ""
+                }) {
+                    Text("إلغاء")
+                }
+            }
+        )
+    }
+
+    if (showAddAlleyDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showAddAlleyDialog = false
+                newAlleyName = ""
+            },
+            title = { Text("إضافة زقاق جديد") },
+            text = {
+                OutlinedTextField(
+                    value = newAlleyName,
+                    onValueChange = { newAlleyName = it },
+                    label = { Text("اسم الزقاق") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newAlleyName.isNotBlank() && selectedStreetId != null) {
+                            viewModel.createAndSelectAlley(selectedStreetId!!, newAlleyName) { newId ->
+                                selectedAlleyId = newId
+                            }
+                            showAddAlleyDialog = false
+                            newAlleyName = ""
+                        }
+                    }
+                ) {
+                    Text("إضافة")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showAddAlleyDialog = false
+                    newAlleyName = ""
                 }) {
                     Text("إلغاء")
                 }

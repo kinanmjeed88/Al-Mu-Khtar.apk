@@ -30,7 +30,6 @@ fun PersonsScreen(
 
     var showAddDialog by remember { mutableStateOf(false) }
     var personToEdit by remember { mutableStateOf<PersonEntity?>(null) }
-    var publicCode by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
     var fatherName by remember { mutableStateOf("") }
     var birthDateMillis by remember { mutableStateOf<Long?>(null) }
@@ -45,7 +44,6 @@ fun PersonsScreen(
             onDismissRequest = {
                 showAddDialog = false
                 personToEdit = null
-                publicCode = ""
                 fullName = ""
                 fatherName = ""
                 birthDateMillis = null
@@ -101,18 +99,12 @@ fun PersonsScreen(
                     )
 
                     OutlinedTextField(
-                        value = publicCode,
-                        onValueChange = { publicCode = it },
-                        label = { Text("الكود العام / رقم الهوية") },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                    )
-                    OutlinedTextField(
                         value = fullName,
                         onValueChange = {
                             fullName = it
                             val candidate = PersonEntity(
                                 id = personToEdit?.id ?: 0L,
-                                publicCode = publicCode,
+                                publicCode = personToEdit?.publicCode ?: java.util.UUID.randomUUID().toString().take(8).uppercase(),
                                 fullName = fullName,
                                 fatherName = fatherName,
                                 grandfatherName = null,
@@ -205,10 +197,9 @@ fun PersonsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    if (publicCode.isNotBlank() && fullName.isNotBlank() && selectedFamilyId != null) {
+                    if (fullName.isNotBlank() && selectedFamilyId != null) {
                         val personToSave = if (isEdit) {
                             personToEdit!!.copy(
-                                publicCode = publicCode,
                                 fullName = fullName,
                                 fatherName = fatherName,
                                 birthDate = birthDateMillis?.toString(),
@@ -218,7 +209,7 @@ fun PersonsScreen(
                             )
                         } else {
                             PersonEntity(
-                                publicCode = publicCode,
+                                publicCode = java.util.UUID.randomUUID().toString().take(8).uppercase(),
                                 fullName = fullName,
                                 fatherName = fatherName,
                                 grandfatherName = null,
@@ -248,7 +239,6 @@ fun PersonsScreen(
                             if (success) {
                                 showAddDialog = false
                                 personToEdit = null
-                                publicCode = ""
                                 fullName = ""
                                 fatherName = ""
                 birthDateMillis = null
@@ -272,7 +262,6 @@ fun PersonsScreen(
                 TextButton(onClick = {
                     showAddDialog = false
                     personToEdit = null
-                    publicCode = ""
                     fullName = ""
                     fatherName = ""
                 birthDateMillis = null
@@ -334,7 +323,6 @@ fun PersonsScreen(
                                 Text(text = "رقم الهوية: ${person.publicCode}", style = MaterialTheme.typography.bodyMedium)
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                                     TextButton(onClick = {
-                                        publicCode = person.publicCode
                                         fullName = person.fullName
                                         fatherName = person.fatherName ?: ""
                                         birthDateMillis = person.birthDate?.toLongOrNull()

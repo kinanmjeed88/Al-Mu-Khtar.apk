@@ -28,12 +28,14 @@ fun FamiliesScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var familyToEdit by remember { mutableStateOf<FamilyEntity?>(null) }
     var familyCode by remember { mutableStateOf("") }
-    var publicCode by remember { mutableStateOf("") }
     var familyName by remember { mutableStateOf("") }
     var selectedHouseId by remember { mutableStateOf<Long?>(null) }
     var selectedHeadOfFamilyId by remember { mutableStateOf<Long?>(null) }
 
     var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    var showAddHouseDialog by remember { mutableStateOf(false) }
+    var newHouseNumber by remember { mutableStateOf("") }
 
     var expandedHouse by remember { mutableStateOf(false) }
     var expandedHead by remember { mutableStateOf(false) }
@@ -46,7 +48,6 @@ fun FamiliesScreen(
                 showAddDialog = false
                 familyToEdit = null
                 familyCode = ""
-                publicCode = ""
                 familyName = ""
                 selectedHouseId = null
                 selectedHeadOfFamilyId = null
@@ -56,32 +57,38 @@ fun FamiliesScreen(
             title = { Text(if (isEdit) "تعديل عائلة" else "إضافة عائلة جديدة") },
             text = {
                 Column {
-                    ExposedDropdownMenuBox(
-                        expanded = expandedHouse,
-                        onExpandedChange = { expandedHouse = !expandedHouse }
-                    ) {
-                        val selectedHouseNum = houses.find { it.id == selectedHouseId }?.houseNumber ?: "اختر الدار"
-                        OutlinedTextField(
-                            value = selectedHouseNum,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("الدار") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedHouse) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor()
-                        )
-                        ExposedDropdownMenu(
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        ExposedDropdownMenuBox(
                             expanded = expandedHouse,
-                            onDismissRequest = { expandedHouse = false }
+                            onExpandedChange = { expandedHouse = !expandedHouse },
+                            modifier = Modifier.weight(1f)
                         ) {
-                            houses.forEach { house ->
-                                DropdownMenuItem(
-                                    text = { Text("دار رقم ${house.houseNumber}") },
-                                    onClick = {
-                                        selectedHouseId = house.id
-                                        expandedHouse = false
-                                    }
-                                )
+                            val selectedHouseNum = houses.find { it.id == selectedHouseId }?.houseNumber ?: "اختر الدار"
+                            OutlinedTextField(
+                                value = selectedHouseNum,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("الدار") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedHouse) },
+                                modifier = Modifier.fillMaxWidth().menuAnchor()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedHouse,
+                                onDismissRequest = { expandedHouse = false }
+                            ) {
+                                houses.forEach { house ->
+                                    DropdownMenuItem(
+                                        text = { Text("دار رقم ${house.houseNumber}") },
+                                        onClick = {
+                                            selectedHouseId = house.id
+                                            expandedHouse = false
+                                        }
+                                    )
+                                }
                             }
+                        }
+                        IconButton(onClick = { showAddHouseDialog = true }) {
+                            Icon(Icons.Default.Add, contentDescription = "إضافة دار")
                         }
                     }
 
@@ -126,12 +133,6 @@ fun FamiliesScreen(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     )
                     OutlinedTextField(
-                        value = publicCode,
-                        onValueChange = { publicCode = it },
-                        label = { Text("الكود العام") },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                    )
-                    OutlinedTextField(
                         value = familyName,
                         onValueChange = { familyName = it },
                         label = { Text("اسم العائلة") },
@@ -150,11 +151,10 @@ fun FamiliesScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    if (familyCode.isNotBlank() && publicCode.isNotBlank() && selectedHouseId != null) {
+                    if (familyCode.isNotBlank() && selectedHouseId != null) {
                         val familyToSave = if (isEdit) {
                             familyToEdit!!.copy(
                                 familyCode = familyCode,
-                                publicCode = publicCode,
                                 familyName = familyName,
                                 houseId = selectedHouseId,
                                 headOfFamilyId = selectedHeadOfFamilyId,
@@ -163,7 +163,7 @@ fun FamiliesScreen(
                         } else {
                             FamilyEntity(
                                 familyCode = familyCode,
-                                publicCode = publicCode,
+                                publicCode = java.util.UUID.randomUUID().toString().take(8).uppercase(),
                                 familyName = familyName,
                                 houseId = selectedHouseId,
                                 headOfFamilyId = null,
@@ -183,7 +183,6 @@ fun FamiliesScreen(
                                 showAddDialog = false
                                 familyToEdit = null
                                 familyCode = ""
-                                publicCode = ""
                                 familyName = ""
                                 selectedHouseId = null
                                 selectedHeadOfFamilyId = null
@@ -205,12 +204,52 @@ fun FamiliesScreen(
                     showAddDialog = false
                     familyToEdit = null
                     familyCode = ""
-                    publicCode = ""
                     familyName = ""
                     selectedHouseId = null
                     selectedHeadOfFamilyId = null
                     errorMsg = null
                     viewModel.clearFamilyPersons()
+                }) {
+                    Text("إلغاء")
+                }
+            }
+        )
+    }
+
+    if (showAddHouseDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showAddHouseDialog = false
+                newHouseNumber = ""
+            },
+            title = { Text("إضافة دار جديدة") },
+            text = {
+                OutlinedTextField(
+                    value = newHouseNumber,
+                    onValueChange = { newHouseNumber = it },
+                    label = { Text("رقم الدار") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newHouseNumber.isNotBlank()) {
+                            viewModel.createAndSelectHouse(newHouseNumber) { newId ->
+                                selectedHouseId = newId
+                            }
+                            showAddHouseDialog = false
+                            newHouseNumber = ""
+                        }
+                    }
+                ) {
+                    Text("إضافة")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showAddHouseDialog = false
+                    newHouseNumber = ""
                 }) {
                     Text("إلغاء")
                 }
@@ -256,7 +295,6 @@ fun FamiliesScreen(
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                                 TextButton(onClick = {
                                     familyCode = family.familyCode
-                                    publicCode = family.publicCode
                                     familyName = family.familyName ?: ""
                                     selectedHouseId = family.houseId
                                     selectedHeadOfFamilyId = family.headOfFamilyId

@@ -25,7 +25,6 @@ fun OutgoingLettersScreen(
 
     var showAddDialog by remember { mutableStateOf(false) }
     var letterToEdit by remember { mutableStateOf<OutgoingLetterEntity?>(null) }
-    var publicCode by remember { mutableStateOf("") }
     var letterNumber by remember { mutableStateOf("") }
     var letterDate by remember { mutableStateOf("") }
     var recipient by remember { mutableStateOf("") }
@@ -37,7 +36,6 @@ fun OutgoingLettersScreen(
             onDismissRequest = {
                 showAddDialog = false
                 letterToEdit = null
-                publicCode = ""
                 letterNumber = ""
                 letterDate = ""
                 recipient = ""
@@ -46,12 +44,6 @@ fun OutgoingLettersScreen(
             title = { Text(if (isEdit) "تعديل كتاب صادر" else "إضافة كتاب صادر جديد") },
             text = {
                 Column {
-                    OutlinedTextField(
-                        value = publicCode,
-                        onValueChange = { publicCode = it },
-                        label = { Text("الكود العام") },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                    )
                     OutlinedTextField(
                         value = letterNumber,
                         onValueChange = { letterNumber = it },
@@ -80,10 +72,9 @@ fun OutgoingLettersScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    if (publicCode.isNotBlank() && letterNumber.isNotBlank() && letterDate.isNotBlank() && recipient.isNotBlank() && subject.isNotBlank()) {
+                    if (letterNumber.isNotBlank() && letterDate.isNotBlank() && recipient.isNotBlank() && subject.isNotBlank()) {
                         val letterToSave = if (isEdit) {
                             letterToEdit!!.copy(
-                                publicCode = publicCode,
                                 letterNumber = letterNumber,
                                 letterDate = letterDate,
                                 recipient = recipient,
@@ -92,7 +83,7 @@ fun OutgoingLettersScreen(
                             )
                         } else {
                             OutgoingLetterEntity(
-                                publicCode = publicCode,
+                                publicCode = java.util.UUID.randomUUID().toString().take(8).uppercase(),
                                 letterNumber = letterNumber,
                                 letterDate = letterDate,
                                 recipient = recipient,
@@ -112,7 +103,6 @@ fun OutgoingLettersScreen(
                         viewModel.saveLetter(letterToSave)
                         showAddDialog = false
                         letterToEdit = null
-                        publicCode = ""
                         letterNumber = ""
                         letterDate = ""
                         recipient = ""
@@ -126,7 +116,6 @@ fun OutgoingLettersScreen(
                 TextButton(onClick = {
                     showAddDialog = false
                     letterToEdit = null
-                    publicCode = ""
                     letterNumber = ""
                     letterDate = ""
                     recipient = ""
@@ -175,7 +164,6 @@ fun OutgoingLettersScreen(
                             Text(text = "رقم: ${letter.letterNumber} | إلى: ${letter.recipient}", style = MaterialTheme.typography.bodyMedium)
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                                 TextButton(onClick = {
-                                    publicCode = letter.publicCode
                                     letterNumber = letter.letterNumber
                                     letterDate = letter.letterDate
                                     recipient = letter.recipient
