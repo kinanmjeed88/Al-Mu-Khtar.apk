@@ -68,4 +68,38 @@ class TransactionRepositoryImpl(
             }
         }
     }
+override suspend fun getDeletedTransactions(): List<TransactionEntity> = withContext(Dispatchers.IO) {
+        transactionDao.getDeletedTransactions()
+    }
+
+    override suspend fun restoreTransaction(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            transactionDao.restoreTransaction(id)
+            val transaction = transactionDao.getTransactionById(id)
+            if (transaction != null) {
+                activityLogRepository.logActivity(
+                    actionType = "RESTORE",
+                    entityType = "Transaction",
+                    entityId = id,
+                    description = "Restored transaction ${transaction.transactionCode}",
+                    oldValues = null,
+                    newValues = transaction.toString()
+                )
+            }
+        }
+    }
+
+    override suspend fun hardDeleteTransaction(id: Long) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            transactionDao.hardDeleteTransaction(id)
+            activityLogRepository.logActivity(
+                actionType = "HARD_DELETE",
+                entityType = "Transaction",
+                entityId = id,
+                description = "Hard deleted transaction ID $id",
+                oldValues = null,
+                newValues = null
+            )
+        }
+    }
 }

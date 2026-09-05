@@ -23,7 +23,8 @@ class RecycleBinViewModel(
     private val streetRepository: StreetRepository,
     private val alleyRepository: AlleyRepository,
     private val incomingLetterRepository: IncomingLetterRepository,
-    private val outgoingLetterRepository: OutgoingLetterRepository
+    private val outgoingLetterRepository: OutgoingLetterRepository,
+    private val transactionRepository: TransactionRepository
 ) : ViewModel() {
 
     private val _deletedItems = MutableStateFlow<List<DeletedItem>>(emptyList())
@@ -65,6 +66,9 @@ class RecycleBinViewModel(
             outgoingLetterRepository.getDeletedLetters().forEach {
                 items.add(DeletedItem(it.id, "outgoing_letter", "صادر: ${it.letterNumber}", null))
             }
+            transactionRepository.getDeletedTransactions().forEach {
+                items.add(DeletedItem(it.id, "transaction", "معاملة: ${it.transactionCode}", it.deletedAt))
+            }
 
             _deletedItems.value = items.sortedByDescending { it.deletedAt ?: 0L }
             _isLoading.value = false
@@ -82,6 +86,7 @@ class RecycleBinViewModel(
                 "alley" -> alleyRepository.restoreAlley(item.id)
                 "incoming_letter" -> incomingLetterRepository.restoreLetter(item.id)
                 "outgoing_letter" -> outgoingLetterRepository.restoreLetter(item.id)
+                "transaction" -> transactionRepository.restoreTransaction(item.id)
             }
             loadDeletedItems()
         }
@@ -98,6 +103,7 @@ class RecycleBinViewModel(
                 "alley" -> alleyRepository.hardDeleteAlley(item.id)
                 "incoming_letter" -> incomingLetterRepository.hardDeleteLetter(item.id)
                 "outgoing_letter" -> outgoingLetterRepository.hardDeleteLetter(item.id)
+                "transaction" -> transactionRepository.hardDeleteTransaction(item.id)
             }
             loadDeletedItems()
         }

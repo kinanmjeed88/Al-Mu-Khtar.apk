@@ -24,6 +24,9 @@ fun DashboardScreen(
     onNavigateToFamilies: () -> Unit,
     onNavigateToPersons: () -> Unit,
     onNavigateToTransactions: () -> Unit,
+    onNavigateToVisitors: () -> Unit,
+    onNavigateToIncomingLetters: () -> Unit,
+    onNavigateToOutgoingLetters: () -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: DashboardViewModel = koinViewModel()
 ) {
@@ -92,6 +95,9 @@ fun DashboardScreen(
                 item { DashboardCard("العوائل", Icons.Default.List, onNavigateToFamilies) }
                 item { DashboardCard("الأفراد", Icons.Default.Person, onNavigateToPersons) }
                 item { DashboardCard("المعاملات", Icons.Default.Email, onNavigateToTransactions) }
+                item { DashboardCard("الزوار", Icons.Default.AccountBox, onNavigateToVisitors) }
+                item { DashboardCard("وارد", Icons.Default.ArrowDropDown, onNavigateToIncomingLetters) }
+                item { DashboardCard("صادر", Icons.Default.Send, onNavigateToOutgoingLetters) }
                 item { DashboardCard("الإعدادات", Icons.Default.Settings, onNavigateToSettings) }
             }
         }
