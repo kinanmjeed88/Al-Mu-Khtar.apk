@@ -16,6 +16,9 @@ interface PersonDao {
 
     @Query("SELECT * FROM persons WHERE is_deleted = 0")
     suspend fun getActivePersons(): List<PersonEntity>
+
+    @Query("SELECT * FROM persons WHERE family_id = :familyId AND is_deleted = 0")
+    suspend fun getPersonsByFamilyId(familyId: Long): List<PersonEntity>
     
     @Query("SELECT * FROM persons WHERE id = :id AND is_deleted = 0")
     suspend fun getActivePersonById(id: Long): PersonEntity?

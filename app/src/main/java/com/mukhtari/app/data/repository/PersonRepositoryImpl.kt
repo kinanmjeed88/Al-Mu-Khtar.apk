@@ -25,6 +25,10 @@ class PersonRepositoryImpl(
         personDao.getActivePersonById(id)
     }
 
+    override suspend fun getPersonsByFamilyId(familyId: Long): List<PersonEntity> = withContext(Dispatchers.IO) {
+        personDao.getPersonsByFamilyId(familyId)
+    }
+
     override suspend fun savePerson(person: PersonEntity): Long = withContext(Dispatchers.IO) {
         db.withTransaction {
             if (person.id == 0L) {

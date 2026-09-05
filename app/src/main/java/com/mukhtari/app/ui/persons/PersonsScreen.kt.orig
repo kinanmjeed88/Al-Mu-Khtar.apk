@@ -210,7 +210,6 @@ fun PersonsScreen(
                                 publicCode = publicCode,
                                 fullName = fullName,
                                 fatherName = fatherName,
-                                birthDate = birthDateMillis?.toString(),
                                 familyId = selectedFamilyId,
                                 houseId = selectedHouseId,
                                 updatedAt = System.currentTimeMillis()
@@ -255,7 +254,6 @@ fun PersonsScreen(
                                 selectedHouseId = null
                                 errorMsg = null
                                 viewModel.clearDuplicateWarning()
-                                viewModel.clearSuggestedFamily()
                             } else {
                                 errorMsg = error
                             }
@@ -279,7 +277,6 @@ fun PersonsScreen(
                     selectedHouseId = null
                     errorMsg = null
                     viewModel.clearDuplicateWarning()
-                    viewModel.clearSuggestedFamily()
                 }) {
                     Text("إلغاء")
                 }

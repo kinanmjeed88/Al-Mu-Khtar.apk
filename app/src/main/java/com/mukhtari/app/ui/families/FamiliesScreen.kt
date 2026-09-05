@@ -21,6 +21,8 @@ fun FamiliesScreen(
     viewModel: FamiliesViewModel = koinViewModel()
 ) {
     val families by viewModel.families.collectAsState()
+    val houses by viewModel.houses.collectAsState()
+    val familyPersons by viewModel.familyPersons.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
@@ -28,9 +30,17 @@ fun FamiliesScreen(
     var familyCode by remember { mutableStateOf("") }
     var publicCode by remember { mutableStateOf("") }
     var familyName by remember { mutableStateOf("") }
+    var selectedHouseId by remember { mutableStateOf<Long?>(null) }
+    var selectedHeadOfFamilyId by remember { mutableStateOf<Long?>(null) }
+
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    var expandedHouse by remember { mutableStateOf(false) }
+    var expandedHead by remember { mutableStateOf(false) }
 
     if (showAddDialog || familyToEdit != null) {
         val isEdit = familyToEdit != null
+
         AlertDialog(
             onDismissRequest = {
                 showAddDialog = false
@@ -38,10 +48,77 @@ fun FamiliesScreen(
                 familyCode = ""
                 publicCode = ""
                 familyName = ""
+                selectedHouseId = null
+                selectedHeadOfFamilyId = null
+                errorMsg = null
+                viewModel.clearFamilyPersons()
             },
             title = { Text(if (isEdit) "تعديل عائلة" else "إضافة عائلة جديدة") },
             text = {
                 Column {
+                    ExposedDropdownMenuBox(
+                        expanded = expandedHouse,
+                        onExpandedChange = { expandedHouse = !expandedHouse }
+                    ) {
+                        val selectedHouseNum = houses.find { it.id == selectedHouseId }?.houseNumber ?: "اختر الدار"
+                        OutlinedTextField(
+                            value = selectedHouseNum,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("الدار") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedHouse) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedHouse,
+                            onDismissRequest = { expandedHouse = false }
+                        ) {
+                            houses.forEach { house ->
+                                DropdownMenuItem(
+                                    text = { Text("دار رقم ${house.houseNumber}") },
+                                    onClick = {
+                                        selectedHouseId = house.id
+                                        expandedHouse = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (isEdit && familyPersons.isNotEmpty()) {
+                        ExposedDropdownMenuBox(
+                            expanded = expandedHead,
+                            onExpandedChange = { expandedHead = !expandedHead }
+                        ) {
+                            val selectedHeadName = familyPersons.find { it.id == selectedHeadOfFamilyId }?.fullName ?: "لا يوجد رب أسرة"
+                            OutlinedTextField(
+                                value = selectedHeadName,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("رب الأسرة") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedHead) },
+                                modifier = Modifier.fillMaxWidth().menuAnchor()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedHead,
+                                onDismissRequest = { expandedHead = false }
+                            ) {
+                                familyPersons.forEach { person ->
+                                    DropdownMenuItem(
+                                        text = { Text(person.fullName) },
+                                        onClick = {
+                                            selectedHeadOfFamilyId = person.id
+                                            expandedHead = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
                     OutlinedTextField(
                         value = familyCode,
                         onValueChange = { familyCode = it },
@@ -60,16 +137,27 @@ fun FamiliesScreen(
                         label = { Text("اسم العائلة") },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     )
+
+                    if (errorMsg != null) {
+                        Text(
+                            text = errorMsg!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    if (familyCode.isNotBlank() && publicCode.isNotBlank()) {
+                    if (familyCode.isNotBlank() && publicCode.isNotBlank() && selectedHouseId != null) {
                         val familyToSave = if (isEdit) {
                             familyToEdit!!.copy(
                                 familyCode = familyCode,
                                 publicCode = publicCode,
                                 familyName = familyName,
+                                houseId = selectedHouseId,
+                                headOfFamilyId = selectedHeadOfFamilyId,
                                 updatedAt = System.currentTimeMillis()
                             )
                         } else {
@@ -77,7 +165,7 @@ fun FamiliesScreen(
                                 familyCode = familyCode,
                                 publicCode = publicCode,
                                 familyName = familyName,
-                                houseId = null,
+                                houseId = selectedHouseId,
                                 headOfFamilyId = null,
                                 residencyDate = null,
                                 residencyStatus = "resident",
@@ -89,12 +177,24 @@ fun FamiliesScreen(
                                 deletedReason = null
                             )
                         }
-                        viewModel.saveFamily(familyToSave)
-                        showAddDialog = false
-                        familyToEdit = null
-                        familyCode = ""
-                        publicCode = ""
-                        familyName = ""
+
+                        viewModel.validateAndSaveFamily(familyToSave) { success, error ->
+                            if (success) {
+                                showAddDialog = false
+                                familyToEdit = null
+                                familyCode = ""
+                                publicCode = ""
+                                familyName = ""
+                                selectedHouseId = null
+                                selectedHeadOfFamilyId = null
+                                errorMsg = null
+                                viewModel.clearFamilyPersons()
+                            } else {
+                                errorMsg = error
+                            }
+                        }
+                    } else {
+                        errorMsg = "يرجى تعبئة جميع الحقول المطلوبة واختيار الدار"
                     }
                 }) {
                     Text("حفظ")
@@ -107,6 +207,10 @@ fun FamiliesScreen(
                     familyCode = ""
                     publicCode = ""
                     familyName = ""
+                    selectedHouseId = null
+                    selectedHeadOfFamilyId = null
+                    errorMsg = null
+                    viewModel.clearFamilyPersons()
                 }) {
                     Text("إلغاء")
                 }
@@ -154,7 +258,10 @@ fun FamiliesScreen(
                                     familyCode = family.familyCode
                                     publicCode = family.publicCode
                                     familyName = family.familyName ?: ""
+                                    selectedHouseId = family.houseId
+                                    selectedHeadOfFamilyId = family.headOfFamilyId
                                     familyToEdit = family
+                                    viewModel.loadPersonsForFamily(family.id)
                                 }) {
                                     Text("تعديل")
                                 }
