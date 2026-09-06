@@ -2,6 +2,7 @@ package com.mukhtari.app.data.backup
 
 import android.content.Context
 import com.mukhtari.app.domain.repository.BackupRestoreRepository
+import com.mukhtari.app.data.local.db.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -15,10 +16,11 @@ import java.util.zip.ZipOutputStream
 
 class BackupRestoreRepositoryImpl(
     private val context: Context,
-    private val dbName: String,
+    private val db: AppDatabase,
     private val appVersionCode: Int,
     private val schemaVersion: Int
 ) : BackupRestoreRepository {
+    private val dbName: String = db.openHelper.databaseName ?: "mukhtari_database"
 
     private fun getSha256(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
@@ -33,6 +35,9 @@ class BackupRestoreRepositoryImpl(
     }
 
     override suspend fun createBackup(outputDir: File): File = withContext(Dispatchers.IO) {
+        // 1. Force WAL checkpoint to ensure all data is written to the main DB file
+        db.query("PRAGMA wal_checkpoint(TRUNCATE)", null).use { cursor -> cursor.moveToFirst() }
+
         val dbFile = context.getDatabasePath(dbName)
         val walFile = File(dbFile.path + "-wal")
         val shmFile = File(dbFile.path + "-shm")
@@ -56,7 +61,7 @@ class BackupRestoreRepositoryImpl(
             // Include attachments
             if (attachmentsDir.exists()) {
                 attachmentsDir.walkTopDown().filter { it.isFile }.forEach { file ->
-                    val relativePath = file.toRelativeString(attachmentsDir.parentFile)
+                    val relativePath = file.toRelativeString(attachmentsDir.parentFile!!)
                     zos.putNextEntry(ZipEntry(relativePath))
                     FileInputStream(file).copyTo(zos)
                     zos.closeEntry()
@@ -64,9 +69,14 @@ class BackupRestoreRepositoryImpl(
                 }
             }
 
-            // Record counts placeholder (ideally fetched from DB directly)
             val recordCounts = JSONObject().apply {
-                put("regions", 0) // Should be queried
+                db.query("SELECT COUNT(*) FROM regions", null).use { if (it.moveToFirst()) put("regions", it.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM streets", null).use { if (it.moveToFirst()) put("streets", it.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM alleys", null).use { if (it.moveToFirst()) put("alleys", it.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM houses", null).use { if (it.moveToFirst()) put("houses", it.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM families", null).use { if (it.moveToFirst()) put("families", it.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM persons", null).use { if (it.moveToFirst()) put("persons", it.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM attachments", null).use { if (it.moveToFirst()) put("attachments", it.getInt(0)) }
             }
 
             val hashesJson = JSONObject().apply {
@@ -91,7 +101,10 @@ class BackupRestoreRepositoryImpl(
     }
 
     override suspend fun restoreBackup(backupFile: File): Boolean = withContext(Dispatchers.IO) {
-        val stagingDir = File(context.cacheDir, "restore_staging_${System.currentTimeMillis()}")
+        val restoreTempDir = File(context.filesDir, "temp_restore")
+        restoreTempDir.deleteRecursively()
+        restoreTempDir.mkdirs()
+        val stagingDir = File(restoreTempDir, "staging_${System.currentTimeMillis()}")
         stagingDir.mkdirs()
 
         try {
@@ -100,6 +113,11 @@ class BackupRestoreRepositoryImpl(
                 var entry = zis.nextEntry
                 while (entry != null) {
                     val destFile = File(stagingDir, entry.name)
+                    // Prevent Zip Slip
+                    if (!destFile.canonicalPath.startsWith(stagingDir.canonicalPath)) {
+                        throw SecurityException("Zip Slip detected: ${entry.name}")
+                    }
+
                     if (entry.isDirectory) {
                         destFile.mkdirs()
                     } else {
@@ -135,22 +153,79 @@ class BackupRestoreRepositoryImpl(
                 return@withContext false
             }
 
-            // 3. Atomic Replacement
+            // 2.5 Verify database integrity in staging before replacing
             val currentDbFile = context.getDatabasePath(dbName)
-            
             val stagedDbFile = File(stagingDir, "database/${currentDbFile.name}")
+
+            if (!stagedDbFile.exists()) {
+                return@withContext false
+            }
+
+            // Attempt to open the staged database to verify integrity
+            try {
+                val dbRaw = android.database.sqlite.SQLiteDatabase.openDatabase(
+                    stagedDbFile.absolutePath,
+                    null,
+                    android.database.sqlite.SQLiteDatabase.OPEN_READONLY
+                )
+                dbRaw.rawQuery("PRAGMA integrity_check", null).use { cursor ->
+                    if (!cursor.moveToFirst() || cursor.getString(0) != "ok") {
+                        dbRaw.close()
+                        return@withContext false
+                    }
+                }
+                dbRaw.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return@withContext false
+            }
+
+            // 3. Atomic Replacement
             val stagedWalFile = File(stagingDir, "database/${currentDbFile.name}-wal")
             val stagedShmFile = File(stagingDir, "database/${currentDbFile.name}-shm")
             
-            if (stagedDbFile.exists()) stagedDbFile.copyTo(currentDbFile, overwrite = true)
-            if (stagedWalFile.exists()) stagedWalFile.copyTo(File(currentDbFile.path + "-wal"), overwrite = true)
-            if (stagedShmFile.exists()) stagedShmFile.copyTo(File(currentDbFile.path + "-shm"), overwrite = true)
+            // Close active DB connection before modifying files
+            db.close()
+
+            // Rollback mechanism
+            val rollbackDir = File(restoreTempDir, "rollback")
+            rollbackDir.mkdirs()
+
+            val activeWalFile = File(currentDbFile.path + "-wal")
+            val activeShmFile = File(currentDbFile.path + "-shm")
+
+            if (currentDbFile.exists()) currentDbFile.copyTo(File(rollbackDir, currentDbFile.name), overwrite = true)
+            if (activeWalFile.exists()) activeWalFile.copyTo(File(rollbackDir, activeWalFile.name), overwrite = true)
+            if (activeShmFile.exists()) activeShmFile.copyTo(File(rollbackDir, activeShmFile.name), overwrite = true)
             
-            val attachmentsStaging = File(stagingDir, "attachments")
             val currentAttachments = File(context.filesDir, "attachments")
-            if (attachmentsStaging.exists()) {
+            val attachmentsRollback = File(rollbackDir, "attachments")
+            if (currentAttachments.exists()) {
+                currentAttachments.copyRecursively(attachmentsRollback, overwrite = true)
+            }
+
+            try {
+                // Overwrite files
+                if (stagedDbFile.exists()) stagedDbFile.copyTo(currentDbFile, overwrite = true)
+                if (stagedWalFile.exists()) stagedWalFile.copyTo(activeWalFile, overwrite = true) else activeWalFile.delete()
+                if (stagedShmFile.exists()) stagedShmFile.copyTo(activeShmFile, overwrite = true) else activeShmFile.delete()
+
+                val attachmentsStaging = File(stagingDir, "attachments")
                 currentAttachments.deleteRecursively()
-                attachmentsStaging.copyRecursively(currentAttachments, overwrite = true)
+                if (attachmentsStaging.exists()) {
+                    attachmentsStaging.copyRecursively(currentAttachments, overwrite = true)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Rollback
+                if (File(rollbackDir, currentDbFile.name).exists()) File(rollbackDir, currentDbFile.name).copyTo(currentDbFile, overwrite = true)
+                if (File(rollbackDir, activeWalFile.name).exists()) File(rollbackDir, activeWalFile.name).copyTo(activeWalFile, overwrite = true)
+                if (File(rollbackDir, activeShmFile.name).exists()) File(rollbackDir, activeShmFile.name).copyTo(activeShmFile, overwrite = true)
+                if (attachmentsRollback.exists()) {
+                    currentAttachments.deleteRecursively()
+                    attachmentsRollback.copyRecursively(currentAttachments, overwrite = true)
+                }
+                return@withContext false
             }
 
             true
@@ -158,7 +233,7 @@ class BackupRestoreRepositoryImpl(
             e.printStackTrace()
             false
         } finally {
-            stagingDir.deleteRecursively()
+            restoreTempDir.deleteRecursively()
         }
     }
 }
