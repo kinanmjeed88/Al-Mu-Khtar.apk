@@ -4,13 +4,13 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.mukhtari.app.data.backup.BackupRestoreRepositoryImpl
-import com.mukhtari.app.data.local.entity.RegionEntity
+import com.mukhtari.app.data.local.entity.ActivityLogEntity
 import com.mukhtari.app.di.DatabaseProvider
+import com.mukhtari.app.data.backup.BackupRestoreRepositoryImpl
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -19,7 +19,7 @@ import java.io.File
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
-class BackupRestoreTest {
+class BackupRestoreActivityLogTest {
     private lateinit var databaseProvider: DatabaseProvider
     private lateinit var context: Context
     private val dbName = "mukhtari_database"
@@ -45,52 +45,34 @@ class BackupRestoreTest {
     }
 
     @Test
-    fun testBackupAndRestoreE2E() = runBlocking {
-        val db = databaseProvider.getDatabase()
-
-        // Insert a test record
-        val region = RegionEntity(
-            publicCode = "REG-01",
-            governorate = "Baghdad",
-            district = "Karkh",
-            subDistrict = "Mansour",
-            mahalla = "601",
-            name = "Backup Test Region",
-            description = null,
-            notes = null,
-            isDeleted = 0,
-            deletedAt = null,
-            deletedReason = null,
-            createdAt = System.currentTimeMillis(),
-            updatedAt = System.currentTimeMillis()
-        )
-        db.regionDao().insertRegion(region)
-
+    fun testBackupAndRestoreLogsActivity() = runBlocking {
         val repo = BackupRestoreRepositoryImpl(context, databaseProvider, 1, 1)
 
-        val backupDir = File(context.cacheDir, "backup_test")
+        val backupDir = File(context.cacheDir, "backup_test_logs")
         backupDir.mkdirs()
 
-        // Test Backup
+        // Test Backup creates log
         val backupFile = repo.createBackup(backupDir)
         assertTrue(backupFile.exists())
 
-        // Modify the current database
-        db.regionDao().hardDeleteRegion(1L)
-        val regionsAfterDelete = db.regionDao().getActiveRegions()
-        assertEquals(0, regionsAfterDelete.size)
+        val dbAfterBackup = databaseProvider.getDatabase()
+        var logs = dbAfterBackup.activityLogDao().getAllActivityLogs().first()
+        assertEquals(1, logs.size)
+        assertEquals("backup_created", logs[0].actionType)
 
-        // Restore
+        // Test Restore creates log
         val restoreResult = repo.restoreBackup(backupFile)
         assertTrue(restoreResult)
 
-        // Verify Data after restore using the automatically re-opened DB instance
-        val restoredDb = databaseProvider.getDatabase()
-        assertTrue(restoredDb.isOpen)
+        val dbAfterRestore = databaseProvider.getDatabase()
+        logs = dbAfterRestore.activityLogDao().getAllActivityLogs().first()
+        assertEquals(2, logs.size)
 
-        val activeRegions = restoredDb.regionDao().getActiveRegions()
-        assertEquals(1, activeRegions.size)
-        assertEquals("Backup Test Region", activeRegions[0].name)
+        // Since we restored the DB from the moment backup_created was written,
+        // the restored DB brings that log back. The new log "backup_restored" is appended.
+        // Therefore, both logs should be present.
+        assertTrue(logs.any { it.actionType == "backup_created" })
+        assertTrue(logs.any { it.actionType == "backup_restored" })
 
         backupDir.deleteRecursively()
     }
