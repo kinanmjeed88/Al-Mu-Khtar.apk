@@ -58,10 +58,7 @@ class BackupRestoreTest {
         )
         db.regionDao().insertRegion(region)
 
-        // Wait for WAL to checkpoint or close DB to ensure everything is written
-        db.close()
-
-        val repo = BackupRestoreRepositoryImpl(context, dbName, 1, 1)
+        val repo = BackupRestoreRepositoryImpl(context, db, 1, 1)
 
         val backupDir = File(context.cacheDir, "backup_test")
         backupDir.mkdirs()
@@ -75,6 +72,12 @@ class BackupRestoreTest {
         ).build()
         assertEquals(0, emptyDb.regionDao().getActiveRegions().size)
         emptyDb.close() // Must close before restore
+
+        db.close() // Must close the active DB connection to allow file replacement
+
+        // Need to recreate the repo with the empty db since it's going to replace it
+        // Wait, restoring overwrites the file `dbName` physically.
+        // In the test, we're using the same `dbName` for everything.
 
         val restoreResult = repo.restoreBackup(backupFile)
         assertTrue(restoreResult)

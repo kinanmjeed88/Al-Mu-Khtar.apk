@@ -69,7 +69,7 @@ val appModule = module {
     single<VisitorLogRepository> { VisitorLogRepositoryImpl(get(), get()) }
     
     single<SecurityRepository> { SecurityRepositoryImpl(androidContext()) }
-    single<BackupRestoreRepository> { BackupRestoreRepositoryImpl(androidContext(), "mukhtari_database", 1, 1) }
+    single<BackupRestoreRepository> { BackupRestoreRepositoryImpl(androidContext(), get(), 1, 1) }
     single<ImportExportRepository> { ImportExportRepositoryImpl(get()) }
     single<ActivityLogRepository> { ActivityLogRepositoryImpl(get()) }
     single<CertificateRepository> { CertificateRepositoryImpl(get()) }
