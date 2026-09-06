@@ -10,6 +10,7 @@ import com.mukhtari.app.domain.repository.HouseRepository
 import com.mukhtari.app.domain.repository.PersonRepository
 import com.mukhtari.app.domain.usecase.ArabicNormalizationUseCase
 import com.mukhtari.app.domain.usecase.DuplicateDetectionUseCase
+import com.mukhtari.app.domain.usecase.MergePersonsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +23,8 @@ class PersonsViewModel(
     private val familyRepository: FamilyRepository,
     private val houseRepository: HouseRepository,
     private val duplicateDetectionUseCase: DuplicateDetectionUseCase,
-    private val arabicNormalizationUseCase: ArabicNormalizationUseCase
+    private val arabicNormalizationUseCase: ArabicNormalizationUseCase,
+    private val mergePersonsUseCase: MergePersonsUseCase
 ) : ViewModel() {
 
     private val _persons = MutableStateFlow<List<PersonEntity>>(emptyList())
@@ -173,6 +175,16 @@ class PersonsViewModel(
 
     fun clearDuplicateWarning() {
         _duplicateWarning.value = null
+    }
+
+    fun mergePersons(sourceId: Long, targetId: Long, reason: String?, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val success = mergePersonsUseCase(sourceId, targetId, reason)
+            if (success) {
+                loadPersons()
+            }
+            onResult(success)
+        }
     }
 
     fun suggestFamilyForPerson(fullName: String) {

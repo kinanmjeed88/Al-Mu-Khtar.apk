@@ -43,11 +43,13 @@ val appModule = module {
     single { get<AppDatabase>().transactionDao() }
     single { get<AppDatabase>().activityLogDao() }
     single { get<AppDatabase>().certificateDao() }
+    single { get<AppDatabase>().attachmentDao() }
     
     // Use cases
     single { ArabicNormalizationUseCase() }
     single { DuplicateDetectionUseCase(get()) }
     single { com.mukhtari.app.domain.usecase.PdfGeneratorUseCase(androidContext()) }
+    single { com.mukhtari.app.domain.usecase.MergePersonsUseCase(get()) }
     
     // Infrastructure
     single { Gson() }
@@ -62,9 +64,9 @@ val appModule = module {
     single<ResidencyRepository> { ResidencyRepositoryImpl(get(), get(), get(), get()) }
     single<TransactionRepository> { TransactionRepositoryImpl(get(), get(), get()) }
     single<DashboardRepository> { DashboardRepositoryImpl(get()) }
-    single<IncomingLetterRepository> { IncomingLetterRepositoryImpl(get()) }
-    single<OutgoingLetterRepository> { OutgoingLetterRepositoryImpl(get()) }
-    single<VisitorLogRepository> { VisitorLogRepositoryImpl(get()) }
+    single<IncomingLetterRepository> { IncomingLetterRepositoryImpl(get(), get()) }
+    single<OutgoingLetterRepository> { OutgoingLetterRepositoryImpl(get(), get()) }
+    single<VisitorLogRepository> { VisitorLogRepositoryImpl(get(), get()) }
     
     single<SecurityRepository> { SecurityRepositoryImpl(androidContext()) }
     single<BackupRestoreRepository> { BackupRestoreRepositoryImpl(androidContext(), "mukhtari_database", 1, 1) }
@@ -75,8 +77,8 @@ val appModule = module {
     // ViewModels
     viewModel { RegionsViewModel(get()) }
     viewModel { com.mukhtari.app.ui.families.FamiliesViewModel(get(), get(), get()) }
-    viewModel { com.mukhtari.app.ui.persons.PersonsViewModel(get(), get(), get(), get(), get()) }
-    viewModel { com.mukhtari.app.ui.certificates.ResidencyCertificateViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { com.mukhtari.app.ui.persons.PersonsViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { com.mukhtari.app.ui.certificates.ResidencyCertificateViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { com.mukhtari.app.ui.houses.HousesViewModel(get(), get(), get(), get()) }
     viewModel { com.mukhtari.app.ui.dashboard.DashboardViewModel(get()) }
     viewModel { com.mukhtari.app.ui.security.SecurityViewModel(get()) }
@@ -86,4 +88,5 @@ val appModule = module {
     viewModel { VisitorsViewModel(get()) }
     viewModel { com.mukhtari.app.ui.recyclebin.RecycleBinViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { com.mukhtari.app.ui.activitylog.ActivityLogViewModel(get()) }
+    viewModel { com.mukhtari.app.ui.attachments.AttachmentsViewModel(get(), androidContext()) }
 }

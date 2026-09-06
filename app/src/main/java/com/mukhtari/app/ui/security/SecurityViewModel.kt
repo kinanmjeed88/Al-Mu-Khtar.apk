@@ -58,4 +58,10 @@ class SecurityViewModel(
             }
         }
     }
+
+    fun lockApp() {
+        if (_isPinSet.value) {
+            _isLocked.value = true
+        }
+    }
 }

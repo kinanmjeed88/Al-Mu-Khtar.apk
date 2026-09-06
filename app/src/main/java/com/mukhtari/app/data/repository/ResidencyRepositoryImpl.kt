@@ -26,6 +26,9 @@ class ResidencyRepositoryImpl(
             // 1. Close current residency
             val currentResidency = residencyDao.getCurrentResidencyForPerson(personId)
             if (currentResidency != null) {
+                if (newStartDate < currentResidency.startDate) {
+                    throw IllegalArgumentException("New start date cannot be before current residency start date")
+                }
                 residencyDao.updateResidency(
                     currentResidency.copy(
                         endDate = newStartDate,

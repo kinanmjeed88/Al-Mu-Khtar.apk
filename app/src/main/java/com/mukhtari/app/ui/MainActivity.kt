@@ -17,6 +17,8 @@ import com.mukhtari.app.ui.security.SecurityViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,6 +35,19 @@ class MainActivity : ComponentActivity() {
                         val isLocked by securityViewModel.isLocked.collectAsState()
                         val isPinSet by securityViewModel.isPinSet.collectAsState()
                         val error by securityViewModel.error.collectAsState()
+
+                        val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+                        androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+                            val observer = LifecycleEventObserver { _, event ->
+                                if (event == Lifecycle.Event.ON_STOP) {
+                                    securityViewModel.lockApp()
+                                }
+                            }
+                            lifecycleOwner.lifecycle.addObserver(observer)
+                            onDispose {
+                                lifecycleOwner.lifecycle.removeObserver(observer)
+                            }
+                        }
 
                         if (isLocked) {
                             AppLockScreen(
