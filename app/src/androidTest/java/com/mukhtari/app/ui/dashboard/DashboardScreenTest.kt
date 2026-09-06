@@ -26,7 +26,7 @@ class DashboardScreenTest {
                 onNavigateToFamilies = {},
                 onNavigateToPersons = {},
                 onNavigateToTransactions = {},
-                onNavigateToSettings = {}
+                onNavigateToSettings = {}, onNavigateToVisitors = {}, onNavigateToIncomingLetters = {}, onNavigateToOutgoingLetters = {}
             )
         }
 

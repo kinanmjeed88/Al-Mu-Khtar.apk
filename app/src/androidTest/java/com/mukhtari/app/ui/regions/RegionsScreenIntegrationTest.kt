@@ -24,6 +24,9 @@ class MockRegionRepository : RegionRepository {
     override suspend fun softDeleteRegion(id: Long) {
         regions.removeIf { it.id == id }
     }
+    override suspend fun getDeletedRegions(): List<RegionEntity> = emptyList()
+    override suspend fun restoreRegion(id: Long) {}
+    override suspend fun hardDeleteRegion(id: Long) {}
 }
 
 @RunWith(AndroidJUnit4::class)

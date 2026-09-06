@@ -41,7 +41,6 @@ fun PersonsScreen(
     var expandedFamily by remember { mutableStateOf(false) }
 
     var showMergeDialog by remember { mutableStateOf(false) }
-    var mergeSourceId by remember { mutableStateOf<Long?>(null) }
     var mergeTargetId by remember { mutableStateOf<Long?>(null) }
 
     var showAddFamilyDialog by remember { mutableStateOf(false) }
