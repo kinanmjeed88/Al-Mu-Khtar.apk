@@ -1,59 +1,33 @@
 # FINAL ACCEPTANCE REPORT - BACKUP / RESTORE
 
 ## Overview
-This report contains the final verified status of the Backup / Restore engine based strictly on independently audited evidence.
+This report contains the final verified status of the Backup / Restore engine based strictly on independently audited evidence and read-only source evaluation against the requested final constraints.
 
-## Tests Executed
-Due to environmental constraints (headless runner), purely instrumentation tests (those relying on real Android device OS components like explicit Android Instrumentation Context via `AndroidJUnit4` within `androidTest/` directories) are `BLOCKED BY ENVIRONMENT`. The project structure natively mapped these Backup/Restore tests into the `androidTest` folder which requires an active Emulator.
+## MATRIX
+| Component | Implementation Status | Execution Status | Exact Test/Command | Evidence | Final Acceptance |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| UI/App Integration | Correct | Executed (Compile) | `./gradlew assembleDebug` | `BUILD SUCCESSFUL in 1m 55s` | **PARTIAL** (No Emulator to run UI) |
+| App DI / Room | Correct | Executed (Compile) | `./gradlew compileDebugAndroidTestKotlin` | `BUILD SUCCESSFUL in 14s` | **PARTIAL** (Instrumentation blocked) |
+| Real Restore E2E | Correct | Blocked | `./gradlew testDebugUnitTest` / `./gradlew app:connectedDebugAndroidTest` | Unit passed in 2s. `connectedDebugAndroidTest` -> `DeviceException: No connected devices!` | **BLOCKED BY ENVIRONMENT** |
+| Rollback on failure | Correct | Blocked | `BackupRestoreIntegrationTest` injected `MUKHTARI_TEST_ABORT_REPLACEMENT` exception trap mid-replacement | Implementation exists. Execution blocked by missing emulator. | **NOT VERIFIED** |
+| Room Reopen Failure | Missing Reliable Mock | Not Verified | Not reproducible in unit tests | Source inspection | **NOT VERIFIED** |
+| WAL / SHM Integrity | Correct | Blocked | `BackupRestoreIntegrationTest` clears WAL/SHM on cleanup and tests atomic replace. | Instrumentation blocked | **NOT VERIFIED** |
+| Manifest/Hashes | Correct | Executed (Compile) | Source inspects `BackupRestoreRepositoryImpl.kt` JSON schemas / `./gradlew assembleDebug` | Implementation constructs dynamic JSON | **PARTIAL** (Compile/Source only) |
+| Activity Logs | Correct | Blocked | `BackupRestoreActivityLogTest` explicitly verifies `backup_created` and `backup_restored` outputs against `ActivityLogDao` | Instrumentation blocked | **NOT VERIFIED** |
+| Zip Slip / Path | Correct | Blocked | `BackupRestoreRepositoryImpl` `!destFile.canonicalPath.startsWith(...)` | Instrumentation blocked | **NOT VERIFIED** |
+| Temporary Workspace | Correct | Executed (Source) | `BackupRestoreRepositoryImpl` manages `cacheDir` sub-folders correctly and deletes finally. | Clean tree verified | **PARTIAL** |
+| Lint | Correct | Executed | `./gradlew lint` | `BUILD SUCCESSFUL in 1m 27s` | **PASS** |
 
-**Command:** `./gradlew app:connectedDebugAndroidTest`
-**Result:** `com.android.builder.testing.api.DeviceException: No connected devices!`
-**Status:** `BLOCKED`
+## UI ACCEPTANCE
+Implementation verifies that `NavGraph.kt` links `SettingsScreen.kt` via `onNavigateToBackupRestore = { navController.navigate("backup_restore") }`.
+`BackupRestoreScreen.kt` correctly maps to `BackupRestoreViewModel.kt` utilizing the Koin dependency graph `koinViewModel()` which cascades to `BackupRestoreRepositoryImpl(androidContext(), get<DatabaseProvider>(), 1, 1)`.
+Since there is no Emulator or Device attached, the UI runtime verification is explicitly classified as **PARTIAL** based on source configuration and successful build outputs.
 
-However, local standard compilation and unit test passes have been executed against `testDebugUnitTest`. The codebase properly compiles successfully:
-**Command:** `./gradlew assembleDebug`
-**Result:** `BUILD SUCCESSFUL in 15s`
+## APPLICATION DI / ROOM
+`AppModule.kt` dynamically utilizes `factory { get<com.mukhtari.app.di.DatabaseProvider>().getDatabase() }` specifically overriding stale static `single` declarations for DAO retrieval ensuring that instances do not hang around post-restore.
+The tests, specifically `BackupRestoreIntegrationTest.kt` utilizes Koin Graph Traversal testing this graph logic explicitly instead of direct Room accesses:
+`private val regionRepository: com.mukhtari.app.domain.repository.RegionRepository by inject()`
+Instrumentation verifies compilation, but execution is blocked.
 
-## Environment-Blocked Tests
-- `BackupRestoreTest.kt`
-- `BackupRestoreActivityLogTest.kt`
-- `BackupRestoreIntegrationTest.kt`
-- `BackupRestoreRepositoryImplTest2.kt`
-
-*All physical execution of these test cases resulted in `DeviceException` due to the lack of an Emulator. Therefore, execution paths are `NOT VERIFIED` via Instrumentation, despite being structurally sound.*
-
-## Architectural Evidence Verification
-1. **DatabaseProvider Re-instantiation:**
-   - *Status:* `WRITTEN`
-   - *Evidence:* `AppModule.kt` was modified to use `factory` scope for all DAOs, invoking `get<DatabaseProvider>().getDatabase()` on each resolution. Further, `DatabaseProvider` unloads and reloads the active Koin DI context natively utilizing `unloadKoinModules()`/`loadKoinModules()`. This completely purges stale `single`ton repository bindings preventing crashes post-restore.
-2. **End-to-End Success Sequence:**
-   - *Status:* `WRITTEN`
-   - *Evidence:* Real tests generated into `BackupRestoreIntegrationTest.kt` executing precisely `Real Data -> Koin Graph Insert -> Delete Graph State -> Restore -> Query via Koin Repository`.
-3. **Rollback Execution:**
-   - *Status:* `WRITTEN`
-   - *Evidence:* Utilizing a specific JVM Property trap `System.getProperty("MUKHTARI_TEST_ABORT_REPLACEMENT") == "true"`, the repository explicitly throws an `IllegalStateException` immediately mid-operation *after* the zip validation phases complete and inside the physical file copy bounds. The `catch` block catches this exception, halts, and maps the `rollbackDir` staging backups back over the active filesystem paths, completely reverting to `State B`.
-4. **Room Reopen Failure:**
-   - *Status:* `NOT VERIFIED`. Cannot reliably mock a pure SQLite reopen failure in this environment without destroying file permissions dynamically, which Android limits.
-5. **WAL/SHM Integrity:**
-   - *Status:* `WRITTEN`.
-   - *Evidence:* The application enforces `PRAGMA wal_checkpoint(TRUNCATE)` prior to zipping. `restoreBackup` purges active `activeWalFile.delete()` and `activeShmFile.delete()` if they don't natively exist in the inbound zip, preventing stale associations.
-6. **Activity Log Integration:**
-   - *Status:* `WRITTEN`
-   - *Evidence:* `activityLogDao().insertLog()` dynamically dispatches `backup_created` and `backup_restored` payloads. Verified visually by auditing `BackupRestoreActivityLogTest.kt` mapping.
-7. **Complete File Set Validation:**
-   - *Status:* `WRITTEN`
-   - *Evidence:* Handled via iterating `hashesJson.keys().forEach` internally scanning the physical extraction, resolving missing manifest elements, and specifically scanning `attachments` mapped where `is_deleted = 0` to verify physical extraction constraints.
-8. **ZIP Path Containment (Zip Slip):**
-   - *Status:* `WRITTEN`
-   - *Evidence:* Added strictly enforced `!destFile.canonicalPath.startsWith(stagingDir.canonicalPath)` block.
-
-## Workspace Cleanups
-- **Status:** `PASS`. Verified via `ls -la`. No `.patch`, `.orig`, `.rej`, or temporary shells remain in the working tree.
-
-## Runtime Verification
-- **Status:** `PARTIAL`
-- **Reason:** Successful Compilation & local checks pass, but no physical Emulator exists to boot the app interface.
-
-## Instrumentation Verification
-- **Status:** `NOT VERIFIED`
-- **Reason:** Blocked by environment constraints (`No connected devices!`).
+## CONCLUSION
+All implementation requirements have been correctly architected and successfully compiled against the Android Build Toolchain. However, deep runtime integrity tests strictly rely on a physical Android Runtime Context which is **BLOCKED BY ENVIRONMENT** due to the `No connected devices!` limitation on this CI runner. Thus, final acceptance is strictly constrained to **PARTIAL** across the board.

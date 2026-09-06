@@ -88,4 +88,5 @@ val appModule = module {
     viewModel { com.mukhtari.app.ui.recyclebin.RecycleBinViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { com.mukhtari.app.ui.activitylog.ActivityLogViewModel(get()) }
     viewModel { com.mukhtari.app.ui.attachments.AttachmentsViewModel(get(), androidContext()) }
+    viewModel { com.mukhtari.app.ui.backup.BackupRestoreViewModel(get()) }
 }

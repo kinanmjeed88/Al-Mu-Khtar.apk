@@ -19,7 +19,8 @@ import java.io.File
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToRecycleBin: () -> Unit = {},
-    onNavigateToActivityLog: () -> Unit = {}
+    onNavigateToActivityLog: () -> Unit = {},
+    onNavigateToBackupRestore: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var crashLogContent by remember { mutableStateOf<String?>(null) }
@@ -58,9 +59,16 @@ fun SettingsScreen(
 
             Button(
                 onClick = onNavigateToActivityLog,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
             ) {
                 Text("سجل النشاطات")
+            }
+
+            Button(
+                onClick = onNavigateToBackupRestore,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            ) {
+                Text("النسخ الاحتياطي والاستعادة")
             }
 
             Divider(modifier = Modifier.padding(vertical = 16.dp))
