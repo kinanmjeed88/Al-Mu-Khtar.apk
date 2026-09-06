@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.clickable
 import com.mukhtari.app.data.local.entity.PersonEntity
 import org.koin.androidx.compose.koinViewModel
 
@@ -19,6 +20,7 @@ import org.koin.androidx.compose.koinViewModel
 fun PersonsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCertificates: (Long, String) -> Unit = { _, _ -> },
+    onNavigateToAttachments: (String, Long) -> Unit,
     viewModel: PersonsViewModel = koinViewModel()
 ) {
     val persons by viewModel.persons.collectAsState()
@@ -32,11 +34,15 @@ fun PersonsScreen(
     var personToEdit by remember { mutableStateOf<PersonEntity?>(null) }
     var fullName by remember { mutableStateOf("") }
     var fatherName by remember { mutableStateOf("") }
-    var birthDateMillis by remember { mutableStateOf<Long?>(null) }
+    var birthDateString by remember { mutableStateOf("") }
     var selectedFamilyId by remember { mutableStateOf<Long?>(null) }
     var selectedHouseId by remember { mutableStateOf<Long?>(null) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
     var expandedFamily by remember { mutableStateOf(false) }
+
+    var showMergeDialog by remember { mutableStateOf(false) }
+    var mergeSourceId by remember { mutableStateOf<Long?>(null) }
+    var mergeTargetId by remember { mutableStateOf<Long?>(null) }
 
     var showAddFamilyDialog by remember { mutableStateOf(false) }
     var newFamilyName by remember { mutableStateOf("") }
@@ -49,7 +55,7 @@ fun PersonsScreen(
                 personToEdit = null
                 fullName = ""
                 fatherName = ""
-                birthDateMillis = null
+                birthDateString = ""
                 selectedFamilyId = null
                 selectedHouseId = null
                 errorMsg = null
@@ -118,10 +124,10 @@ fun PersonsScreen(
                                 fatherName = fatherName,
                                 grandfatherName = null,
                                 surname = null,
-                                gender = "male",
-                                birthDate = birthDateMillis?.toString(),
-                                maritalStatus = "single",
-                                relationToHead = "self",
+                                gender = "unknown",
+                                birthDate = birthDateString.ifBlank { null },
+                                maritalStatus = "unknown",
+                                relationToHead = "unknown",
                                 familyId = selectedFamilyId,
                                 houseId = selectedHouseId,
                                 workStatus = "unemployed",
@@ -170,20 +176,31 @@ fun PersonsScreen(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     )
                     OutlinedTextField(
-                        value = birthDateMillis?.toString() ?: "",
+                        value = birthDateString,
                         onValueChange = {
-                            birthDateMillis = it.toLongOrNull()
+                            birthDateString = it
                         },
-                        label = { Text("تاريخ الميلاد (Epoch Millis)") },
+                        label = { Text("تاريخ الميلاد (YYYY-MM-DD)") },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     )
-                    val calculatedAge = birthDateMillis?.let { millis ->
-                        val diffMillis = System.currentTimeMillis() - millis
-                        val ageYears = diffMillis / (1000L * 60 * 60 * 24 * 365)
-                        if (ageYears >= 0) ageYears else null
+                    val ageText = try {
+                        if (birthDateString.isNotBlank()) {
+                            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                            val birthDate = sdf.parse(birthDateString)
+                            if (birthDate != null) {
+                                val diffMillis = System.currentTimeMillis() - birthDate.time
+                                val ageYears = diffMillis / (1000L * 60 * 60 * 24 * 365)
+                                if (ageYears >= 0) {
+                                    "العمر: $ageYears سنة"
+                                } else null
+                            } else null
+                        } else null
+                    } catch (e: Exception) {
+                        null
                     }
-                    if (calculatedAge != null) {
-                        Text(text = "العمر: $calculatedAge سنة", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(vertical = 4.dp))
+
+                    if (ageText != null) {
+                         Text(text = ageText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(vertical = 4.dp))
                     }
 
                     if (duplicateWarning != null) {
@@ -193,6 +210,13 @@ fun PersonsScreen(
                             modifier = Modifier.padding(top = 8.dp),
                             style = MaterialTheme.typography.bodySmall
                         )
+                        // Trigger merge via picking another person temporarily using search or just explicit UI if advanced
+                        // Since this is basic duplicate detection on save, if it's editing, they could merge
+                        if (isEdit) {
+                            TextButton(onClick = { showMergeDialog = true }) {
+                                Text("دمج مع سجل مشابه؟", color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
                     }
                     if (errorMsg != null) {
                         Text(
@@ -211,7 +235,7 @@ fun PersonsScreen(
                             personToEdit!!.copy(
                                 fullName = fullName,
                                 fatherName = fatherName,
-                                birthDate = birthDateMillis?.toString(),
+                                birthDate = birthDateString.ifBlank { null },
                                 familyId = selectedFamilyId,
                                 houseId = selectedHouseId,
                                 updatedAt = System.currentTimeMillis()
@@ -223,10 +247,10 @@ fun PersonsScreen(
                                 fatherName = fatherName,
                                 grandfatherName = null,
                                 surname = null,
-                                gender = "male",
-                                birthDate = birthDateMillis?.toString(),
-                                maritalStatus = "single",
-                                relationToHead = "self",
+                                gender = "unknown",
+                                birthDate = birthDateString.ifBlank { null },
+                                maritalStatus = "unknown",
+                                relationToHead = "unknown",
                                 familyId = selectedFamilyId,
                                 houseId = selectedHouseId,
                                 workStatus = "unemployed",
@@ -250,7 +274,7 @@ fun PersonsScreen(
                                 personToEdit = null
                                 fullName = ""
                                 fatherName = ""
-                birthDateMillis = null
+                                birthDateString = ""
                                 selectedFamilyId = null
                                 selectedHouseId = null
                                 errorMsg = null
@@ -273,13 +297,78 @@ fun PersonsScreen(
                     personToEdit = null
                     fullName = ""
                     fatherName = ""
-                birthDateMillis = null
+                    birthDateString = ""
                     selectedFamilyId = null
                     selectedHouseId = null
                     errorMsg = null
                     viewModel.clearDuplicateWarning()
                     viewModel.clearSuggestedFamily()
                 }) {
+                    Text("إلغاء")
+                }
+            }
+        )
+    }
+
+    if (showMergeDialog && personToEdit != null) {
+        AlertDialog(
+            onDismissRequest = { showMergeDialog = false },
+            title = { Text("دمج الأفراد") },
+            text = {
+                Column {
+                    Text("اختر السجل الأساسي الذي ترغب بدمج السجل الحالي (${personToEdit!!.fullName}) إليه:")
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    var mergeSearchQuery by remember { mutableStateOf("") }
+                    OutlinedTextField(
+                        value = mergeSearchQuery,
+                        onValueChange = { mergeSearchQuery = it },
+                        label = { Text("ابحث عن الشخص الأساسي") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    val filteredMergePersons = persons.filter {
+                        it.id != personToEdit!!.id && it.fullName.contains(mergeSearchQuery)
+                    }
+
+                    LazyColumn(modifier = Modifier.height(200.dp)) {
+                        items(filteredMergePersons) { p ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { mergeTargetId = p.id }
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = mergeTargetId == p.id,
+                                    onClick = { mergeTargetId = p.id }
+                                )
+                                Text(p.fullName)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (mergeTargetId != null) {
+                        viewModel.mergePersons(sourceId = personToEdit!!.id, targetId = mergeTargetId!!, reason = "Manual merge triggered by user") { success ->
+                            if (success) {
+                                showMergeDialog = false
+                                showAddDialog = false
+                                personToEdit = null
+                            } else {
+                                errorMsg = "فشل الدمج"
+                            }
+                        }
+                    }
+                }) {
+                    Text("دمج")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showMergeDialog = false }) {
                     Text("إلغاء")
                 }
             }
@@ -375,7 +464,7 @@ fun PersonsScreen(
                                     TextButton(onClick = {
                                         fullName = person.fullName
                                         fatherName = person.fatherName ?: ""
-                                        birthDateMillis = person.birthDate?.toLongOrNull()
+                                        birthDateString = person.birthDate ?: ""
                                         selectedFamilyId = person.familyId
                                         selectedHouseId = person.houseId
                                         personToEdit = person
@@ -384,6 +473,9 @@ fun PersonsScreen(
                                     }
                                     TextButton(onClick = { onNavigateToCertificates(person.id, person.fullName) }) {
                                         Text("تأييد سكن")
+                                    }
+                                    TextButton(onClick = { onNavigateToAttachments("person", person.id) }) {
+                                        Text("مرفقات")
                                     }
                                     TextButton(onClick = { viewModel.deletePerson(person.id) }) {
                                         Text("حذف", color = MaterialTheme.colorScheme.error)

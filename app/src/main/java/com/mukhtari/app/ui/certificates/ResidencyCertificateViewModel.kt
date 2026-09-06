@@ -9,6 +9,9 @@ import com.mukhtari.app.domain.repository.FamilyRepository
 import com.mukhtari.app.domain.repository.HouseRepository
 import com.mukhtari.app.domain.repository.PersonRepository
 import com.mukhtari.app.domain.repository.TransactionRepository
+import com.mukhtari.app.domain.repository.AlleyRepository
+import com.mukhtari.app.domain.repository.StreetRepository
+import com.mukhtari.app.domain.repository.RegionRepository
 import com.mukhtari.app.domain.usecase.PdfGeneratorUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +23,9 @@ class ResidencyCertificateViewModel(
     private val personRepository: PersonRepository,
     private val familyRepository: FamilyRepository,
     private val houseRepository: HouseRepository,
+    private val alleyRepository: AlleyRepository,
+    private val streetRepository: StreetRepository,
+    private val regionRepository: RegionRepository,
     private val transactionRepository: TransactionRepository,
     private val certificateRepository: CertificateRepository,
     private val pdfGeneratorUseCase: PdfGeneratorUseCase
@@ -58,7 +64,32 @@ class ResidencyCertificateViewModel(
                 if (person.houseId != null) {
                     val house = houseRepository.getHouseById(person.houseId)
                     if (house != null) {
-                        address = "دار رقم ${house.houseNumber}"
+                        val parts = mutableListOf<String>()
+
+                        if (house.streetId != null) {
+                            val street = streetRepository.getStreetById(house.streetId)
+                            if (street != null) {
+                                val region = regionRepository.getActiveRegionById(street.regionId)
+                                if (region != null) {
+                                    parts.add("محافظة ${region.governorate}")
+                                    parts.add("قضاء ${region.district}")
+                                    parts.add("منطقة ${region.name}")
+                                    parts.add("محلة ${region.mahalla}")
+                                }
+                                parts.add("شارع ${street.name}")
+                            }
+                        }
+
+                        if (house.alleyId != null) {
+                            val alley = alleyRepository.getAlleyById(house.alleyId)
+                            if (alley != null) {
+                                parts.add("زقاق ${alley.name}")
+                            }
+                        }
+
+                        parts.add("دار رقم ${house.houseNumber}")
+
+                        address = parts.joinToString(" / ")
                     }
                 }
 

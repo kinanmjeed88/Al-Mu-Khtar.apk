@@ -18,6 +18,7 @@ import com.mukhtari.app.ui.letters.OutgoingLettersScreen
 import com.mukhtari.app.ui.certificates.ResidencyCertificateScreen
 import com.mukhtari.app.ui.recyclebin.RecycleBinScreen
 import com.mukhtari.app.ui.activitylog.ActivityLogScreen
+import com.mukhtari.app.ui.attachments.AttachmentsScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
@@ -63,6 +64,9 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCertificates = { personId, personName ->
                     navController.navigate("certificates/$personId/$personName")
+                },
+                onNavigateToAttachments = { ownerType, ownerId ->
+                    navController.navigate("attachments/$ownerType/$ownerId")
                 }
             )
         }
@@ -115,6 +119,21 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
         }
         composable("activity_log") {
             ActivityLogScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = "attachments/{ownerType}/{ownerId}",
+            arguments = listOf(
+                navArgument("ownerType") { type = NavType.StringType },
+                navArgument("ownerId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val ownerType = backStackEntry.arguments?.getString("ownerType") ?: ""
+            val ownerId = backStackEntry.arguments?.getLong("ownerId") ?: 0L
+            AttachmentsScreen(
+                ownerType = ownerType,
+                ownerId = ownerId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

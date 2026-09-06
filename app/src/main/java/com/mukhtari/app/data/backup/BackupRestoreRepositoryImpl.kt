@@ -38,17 +38,17 @@ class BackupRestoreRepositoryImpl(
         val shmFile = File(dbFile.path + "-shm")
         val attachmentsDir = File(context.filesDir, "attachments")
 
-        val backupFile = File(outputDir, "mukhtari_backup_\${System.currentTimeMillis()}.zip")
+        val backupFile = File(outputDir, "mukhtari_backup_${System.currentTimeMillis()}.zip")
         val fileHashes = mutableMapOf<String, String>()
 
         ZipOutputStream(FileOutputStream(backupFile)).use { zos ->
             // Include db files
             listOf(dbFile, walFile, shmFile).forEach { file ->
                 if (file.exists()) {
-                    zos.putNextEntry(ZipEntry("database/\${file.name}"))
+                    zos.putNextEntry(ZipEntry("database/${file.name}"))
                     FileInputStream(file).copyTo(zos)
                     zos.closeEntry()
-                    fileHashes["database/\${file.name}"] = getSha256(file)
+                    fileHashes["database/${file.name}"] = getSha256(file)
                 }
             }
 
@@ -90,7 +90,7 @@ class BackupRestoreRepositoryImpl(
     }
 
     override suspend fun restoreBackup(backupFile: File): Boolean = withContext(Dispatchers.IO) {
-        val stagingDir = File(context.cacheDir, "restore_staging_\${System.currentTimeMillis()}")
+        val stagingDir = File(context.cacheDir, "restore_staging_${System.currentTimeMillis()}")
         stagingDir.mkdirs()
 
         try {
@@ -137,9 +137,9 @@ class BackupRestoreRepositoryImpl(
             // 3. Atomic Replacement
             val currentDbFile = context.getDatabasePath(dbName)
             
-            val stagedDbFile = File(stagingDir, "database/\${currentDbFile.name}")
-            val stagedWalFile = File(stagingDir, "database/\${currentDbFile.name}-wal")
-            val stagedShmFile = File(stagingDir, "database/\${currentDbFile.name}-shm")
+            val stagedDbFile = File(stagingDir, "database/${currentDbFile.name}")
+            val stagedWalFile = File(stagingDir, "database/${currentDbFile.name}-wal")
+            val stagedShmFile = File(stagingDir, "database/${currentDbFile.name}-shm")
             
             if (stagedDbFile.exists()) stagedDbFile.copyTo(currentDbFile, overwrite = true)
             if (stagedWalFile.exists()) stagedWalFile.copyTo(File(currentDbFile.path + "-wal"), overwrite = true)

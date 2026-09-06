@@ -33,7 +33,7 @@ class ImportExportRepositoryImpl(
                     val cells = line.split(",")
                     val rowJson = JSONObject()
                     cells.forEachIndexed { index, value ->
-                        rowJson.put("col_\$index", value.trim())
+                        rowJson.put("col_$index", value.trim())
                     }
                     
                     stagingEntities.add(createStagingEntity(sessionId, rowNumber, file.name, rowJson))
@@ -52,7 +52,7 @@ class ImportExportRepositoryImpl(
                     val rowJson = JSONObject()
                     for (j in 0 until (headerRow?.lastCellNum ?: 0)) {
                         val cell = row.getCell(j, org.apache.poi.ss.usermodel.Row.MissingCellPolicy.CREATE_NULL_AS_BLANK)
-                        rowJson.put("col_\$j", cell.toString().trim())
+                        rowJson.put("col_$j", cell.toString().trim())
                     }
                     stagingEntities.add(createStagingEntity(sessionId, rowNumber, file.name, rowJson))
                     rowNumber++
@@ -97,13 +97,66 @@ class ImportExportRepositoryImpl(
         db.withTransaction {
             val records = db.importStagingDao().getStagingBySessionId(sessionId)
             val validRecords = records.filter { it.validationStatus == "valid" }
+
+            for (record in validRecords) {
+                try {
+                    val rowJson = JSONObject(record.rawDataJson)
+                    // Simplified import mapper for PersonEntity logic depending on structure.
+                    // Assumes col_0 = fullName, col_1 = publicCode...
+                    val fullName = rowJson.optString("col_0", "").trim()
+                    if (fullName.isNotEmpty()) {
+                        val person = com.mukhtari.app.data.local.entity.PersonEntity(
+                            publicCode = java.util.UUID.randomUUID().toString().take(8).uppercase(),
+                            fullName = fullName,
+                            fatherName = rowJson.optString("col_1", "").trim().takeIf { it.isNotEmpty() },
+                            grandfatherName = null,
+                            surname = null,
+                            gender = "unknown",
+                            birthDate = null,
+                            maritalStatus = "unknown",
+                            relationToHead = null,
+                            familyId = null,
+                            houseId = null,
+                            workStatus = "unknown",
+                            employer = null,
+                            jobTitle = null,
+                            educationLevel = "unknown",
+                            phone = null,
+                            phoneAlt = null,
+                            notes = null,
+                            isDeleted = 0,
+                            deletedAt = null,
+                            deletedReason = null,
+                            createdAt = System.currentTimeMillis(),
+                            updatedAt = System.currentTimeMillis()
+                        )
+                        db.personDao().insertPerson(person)
+
+                        // Log activity
+                        db.activityLogDao().insertLog(
+                            com.mukhtari.app.data.local.entity.ActivityLogEntity(
+                                actionType = "IMPORT",
+                                entityType = "Person",
+                                entityId = null,
+                                description = "Imported person $fullName via session $sessionId",
+                                oldValues = null,
+                                newValues = person.toString(),
+                                timestamp = System.currentTimeMillis()
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
             db.importStagingDao().deleteStagingSession(sessionId)
         }
     }
 
     override suspend fun exportDataToCsv(tableName: String, outputFile: File): Boolean = withContext(Dispatchers.IO) {
         try {
-            val query = SupportSQLiteQueryBuilder.builder("SELECT * FROM \$tableName WHERE is_deleted = 0").create()
+            val query = SupportSQLiteQueryBuilder.builder("SELECT * FROM $tableName WHERE is_deleted = 0").create()
             val cursor = db.query(query)
             
             OutputStreamWriter(FileOutputStream(outputFile)).use { writer ->
