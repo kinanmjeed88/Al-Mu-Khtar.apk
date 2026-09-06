@@ -1,9 +1,7 @@
 package com.mukhtari.app.di
 
-import androidx.room.Room
 import com.mukhtari.app.data.backup.BackupRestoreRepositoryImpl
 import com.mukhtari.app.data.export.ImportExportRepositoryImpl
-import com.mukhtari.app.data.local.db.AppDatabase
 import com.mukhtari.app.data.repository.*
 import com.mukhtari.app.data.security.SecurityRepositoryImpl
 import com.mukhtari.app.domain.repository.*
@@ -20,30 +18,31 @@ import com.mukhtari.app.ui.visitors.VisitorsViewModel
 import com.google.gson.Gson
 
 val appModule = module {
-    single {
-        Room.databaseBuilder(
-            androidContext(),
-            AppDatabase::class.java,
-            "mukhtari_database"
-        ).build()
-    }
+    // Dynamic Database Provider for Backup/Restore Room Lifecycle
+    single { com.mukhtari.app.di.DatabaseProvider(androidContext()) }
     
-    // DAOs
-    single { get<AppDatabase>().regionDao() }
-    single { get<AppDatabase>().streetDao() }
-    single { get<AppDatabase>().alleyDao() }
-    single { get<AppDatabase>().personDao() }
-    single { get<AppDatabase>().familyDao() }
-    single { get<AppDatabase>().houseDao() }
-    single { get<AppDatabase>().residencyDao() }
-    single { get<AppDatabase>().dashboardDao() }
-    single { get<AppDatabase>().incomingLetterDao() }
-    single { get<AppDatabase>().outgoingLetterDao() }
-    single { get<AppDatabase>().visitorLogDao() }
-    single { get<AppDatabase>().transactionDao() }
-    single { get<AppDatabase>().activityLogDao() }
-    single { get<AppDatabase>().certificateDao() }
-    single { get<AppDatabase>().attachmentDao() }
+    // Dynamically retrieve the active database instance.
+    // Uses factory so DAOs don't hold a stale reference when DB restarts.
+    factory { get<com.mukhtari.app.di.DatabaseProvider>().getDatabase() }
+
+    // DAOs must be injected using `factory` instead of `single`
+    // to ensure they always get the latest active database connection
+    // if a Restore operation occurred.
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().regionDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().streetDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().alleyDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().personDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().familyDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().houseDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().residencyDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().dashboardDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().incomingLetterDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().outgoingLetterDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().visitorLogDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().transactionDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().activityLogDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().certificateDao() }
+    factory { get<com.mukhtari.app.data.local.db.AppDatabase>().attachmentDao() }
     
     // Use cases
     single { ArabicNormalizationUseCase() }
@@ -69,7 +68,7 @@ val appModule = module {
     single<VisitorLogRepository> { VisitorLogRepositoryImpl(get(), get()) }
     
     single<SecurityRepository> { SecurityRepositoryImpl(androidContext()) }
-    single<BackupRestoreRepository> { BackupRestoreRepositoryImpl(androidContext(), get(), 1, 1) }
+    single<BackupRestoreRepository> { com.mukhtari.app.data.backup.BackupRestoreRepositoryImpl(androidContext(), get<com.mukhtari.app.di.DatabaseProvider>(), 1, 1) }
     single<ImportExportRepository> { ImportExportRepositoryImpl(get()) }
     single<ActivityLogRepository> { ActivityLogRepositoryImpl(get()) }
     single<CertificateRepository> { CertificateRepositoryImpl(get()) }

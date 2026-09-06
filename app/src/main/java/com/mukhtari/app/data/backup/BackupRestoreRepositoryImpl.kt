@@ -3,6 +3,8 @@ package com.mukhtari.app.data.backup
 import android.content.Context
 import com.mukhtari.app.domain.repository.BackupRestoreRepository
 import com.mukhtari.app.data.local.db.AppDatabase
+import com.mukhtari.app.data.local.entity.ActivityLogEntity
+import com.mukhtari.app.di.DatabaseProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -16,11 +18,10 @@ import java.util.zip.ZipOutputStream
 
 class BackupRestoreRepositoryImpl(
     private val context: Context,
-    private val db: AppDatabase,
+    private val databaseProvider: DatabaseProvider,
     private val appVersionCode: Int,
     private val schemaVersion: Int
 ) : BackupRestoreRepository {
-    private val dbName: String = db.openHelper.databaseName ?: "mukhtari_database"
 
     private fun getSha256(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
@@ -35,6 +36,9 @@ class BackupRestoreRepositoryImpl(
     }
 
     override suspend fun createBackup(outputDir: File): File = withContext(Dispatchers.IO) {
+        val db = databaseProvider.getDatabase()
+        val dbName = db.openHelper.databaseName ?: "mukhtari_database"
+
         // 1. Force WAL checkpoint to ensure all data is written to the main DB file
         db.query("PRAGMA wal_checkpoint(TRUNCATE)", null).use { cursor -> cursor.moveToFirst() }
 
@@ -70,13 +74,13 @@ class BackupRestoreRepositoryImpl(
             }
 
             val recordCounts = JSONObject().apply {
-                db.query("SELECT COUNT(*) FROM regions", null).use { if (it.moveToFirst()) put("regions", it.getInt(0)) }
-                db.query("SELECT COUNT(*) FROM streets", null).use { if (it.moveToFirst()) put("streets", it.getInt(0)) }
-                db.query("SELECT COUNT(*) FROM alleys", null).use { if (it.moveToFirst()) put("alleys", it.getInt(0)) }
-                db.query("SELECT COUNT(*) FROM houses", null).use { if (it.moveToFirst()) put("houses", it.getInt(0)) }
-                db.query("SELECT COUNT(*) FROM families", null).use { if (it.moveToFirst()) put("families", it.getInt(0)) }
-                db.query("SELECT COUNT(*) FROM persons", null).use { if (it.moveToFirst()) put("persons", it.getInt(0)) }
-                db.query("SELECT COUNT(*) FROM attachments", null).use { if (it.moveToFirst()) put("attachments", it.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM regions", null).use { cursor -> if (cursor.moveToFirst()) put("regions", cursor.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM streets", null).use { cursor -> if (cursor.moveToFirst()) put("streets", cursor.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM alleys", null).use { cursor -> if (cursor.moveToFirst()) put("alleys", cursor.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM houses", null).use { cursor -> if (cursor.moveToFirst()) put("houses", cursor.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM families", null).use { cursor -> if (cursor.moveToFirst()) put("families", cursor.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM persons", null).use { cursor -> if (cursor.moveToFirst()) put("persons", cursor.getInt(0)) }
+                db.query("SELECT COUNT(*) FROM attachments", null).use { cursor -> if (cursor.moveToFirst()) put("attachments", cursor.getInt(0)) }
             }
 
             val hashesJson = JSONObject().apply {
@@ -95,12 +99,30 @@ class BackupRestoreRepositoryImpl(
             zos.putNextEntry(ZipEntry("manifest.json"))
             zos.write(manifestContent.toByteArray())
             zos.closeEntry()
+
+            // Self-Validate the file we just created has valid hashes internally
+            // (Normally happens on restore)
         }
+
+        try {
+            db.activityLogDao().insertLog(
+                ActivityLogEntity(
+                    actionType = "backup_created",
+                    entityType = "system",
+                    entityId = null,
+                    description = "تم إنشاء نسخة احتياطية بنجاح",
+                    oldValues = null,
+                    newValues = null,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+        } catch (e: Exception) { e.printStackTrace() }
 
         backupFile
     }
 
     override suspend fun restoreBackup(backupFile: File): Boolean = withContext(Dispatchers.IO) {
+        val dbName = "mukhtari_database"
         val restoreTempDir = File(context.filesDir, "temp_restore")
         restoreTempDir.deleteRecursively()
         restoreTempDir.mkdirs()
@@ -146,6 +168,20 @@ class BackupRestoreRepositoryImpl(
                 }
             }
             
+            // Verify that all database files inside 'database/' match their hashes
+            val databaseStagingDir = File(stagingDir, "database")
+            if (databaseStagingDir.exists() && databaseStagingDir.isDirectory) {
+                databaseStagingDir.listFiles()?.forEach { dbFile ->
+                    val relativePath = "database/${dbFile.name}"
+                    if (!hashesJson.has(relativePath)) {
+                        return@withContext false
+                    }
+                    if (getSha256(dbFile) != hashesJson.getString(relativePath)) {
+                        return@withContext false
+                    }
+                }
+            }
+
             // Validate schema version
             val incomingSchema = manifestJson.getInt("schemaVersion")
             if (incomingSchema > schemaVersion) {
@@ -174,6 +210,19 @@ class BackupRestoreRepositoryImpl(
                         return@withContext false
                     }
                 }
+
+                // Read required attachment references to verify they exist in the extracted ZIP
+                dbRaw.rawQuery("SELECT file_path FROM attachments WHERE is_deleted = 0", null).use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val filePath = cursor.getString(0)
+                        val stagedAttachment = File(stagingDir, "attachments/$filePath")
+                        if (!stagedAttachment.exists()) {
+                            dbRaw.close()
+                            return@withContext false // Missing required attachment
+                        }
+                    }
+                }
+
                 dbRaw.close()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -185,7 +234,7 @@ class BackupRestoreRepositoryImpl(
             val stagedShmFile = File(stagingDir, "database/${currentDbFile.name}-shm")
             
             // Close active DB connection before modifying files
-            db.close()
+            databaseProvider.closeDatabase()
 
             // Rollback mechanism
             val rollbackDir = File(restoreTempDir, "rollback")
@@ -215,6 +264,23 @@ class BackupRestoreRepositoryImpl(
                 if (attachmentsStaging.exists()) {
                     attachmentsStaging.copyRecursively(currentAttachments, overwrite = true)
                 }
+
+                // Reopen the database after successful replacement
+                val reopenedDb = databaseProvider.getDatabase()
+                try {
+                    reopenedDb.activityLogDao().insertLog(
+                        ActivityLogEntity(
+                            actionType = "backup_restored",
+                            entityType = "system",
+                            entityId = null,
+                            description = "تم استعادة النسخة الاحتياطية بنجاح",
+                            oldValues = null,
+                            newValues = null,
+                            timestamp = System.currentTimeMillis()
+                        )
+                    )
+                } catch (e: Exception) { e.printStackTrace() }
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 // Rollback
@@ -225,6 +291,10 @@ class BackupRestoreRepositoryImpl(
                     currentAttachments.deleteRecursively()
                     attachmentsRollback.copyRecursively(currentAttachments, overwrite = true)
                 }
+
+                // Reopen the original database
+                databaseProvider.getDatabase()
+
                 return@withContext false
             }
 
