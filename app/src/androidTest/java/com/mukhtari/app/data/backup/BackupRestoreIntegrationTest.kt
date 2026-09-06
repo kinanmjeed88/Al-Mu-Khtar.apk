@@ -80,7 +80,7 @@ class BackupRestoreIntegrationTest : KoinTest {
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
-        regionRepository.addRegion(regionA) // Uses Koin Repo -> DAO -> State A DB
+        regionRepository.saveRegion(regionA) // Uses Koin Repo -> DAO -> State A DB
 
         val repo = BackupRestoreRepositoryImpl(context, databaseProvider, 1, 1)
 
@@ -92,8 +92,8 @@ class BackupRestoreIntegrationTest : KoinTest {
         assertTrue(backupFile.exists())
 
         // Modify the current database (State B) using Koin Repository
-        val activeRegions = regionRepository.getAllActiveRegions()
-        regionRepository.deleteRegion(activeRegions[0].id)
+        val activeRegions = regionRepository.getActiveRegions()
+        regionRepository.softDeleteRegion(activeRegions[0].id)
         val regionB = RegionEntity(
             publicCode = "REG-B",
             governorate = "Basra",
@@ -109,9 +109,9 @@ class BackupRestoreIntegrationTest : KoinTest {
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
-        regionRepository.addRegion(regionB)
+        regionRepository.saveRegion(regionB)
 
-        val regionsStateB = regionRepository.getAllActiveRegions()
+        val regionsStateB = regionRepository.getActiveRegions()
         assertEquals(1, regionsStateB.size)
         assertEquals("State B Region", regionsStateB[0].name)
 
@@ -128,7 +128,7 @@ class BackupRestoreIntegrationTest : KoinTest {
 
         // Verify Data after failed restore (Should remain State B) using Koin Repository again
         // If Koin singletons were stale, this would crash. It should cleanly return State B.
-        val activeRegionsAfterFailure = regionRepository.getAllActiveRegions()
+        val activeRegionsAfterFailure = regionRepository.getActiveRegions()
         assertEquals(1, activeRegionsAfterFailure.size)
         assertEquals("State B Region", activeRegionsAfterFailure[0].name) // DB rolled back cleanly to active State B
 
@@ -138,7 +138,7 @@ class BackupRestoreIntegrationTest : KoinTest {
 
         // Verify Data after real restore using Koin Repository (Should return to State A)
         // If Koin was not successfully reloaded by the DatabaseProvider, this will crash with IllegalStateException
-        val activeRegionsFinal = regionRepository.getAllActiveRegions()
+        val activeRegionsFinal = regionRepository.getActiveRegions()
         assertEquals(1, activeRegionsFinal.size)
         assertEquals("State A Region", activeRegionsFinal[0].name)
 

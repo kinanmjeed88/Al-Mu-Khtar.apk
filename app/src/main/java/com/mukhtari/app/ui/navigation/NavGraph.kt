@@ -19,6 +19,7 @@ import com.mukhtari.app.ui.certificates.ResidencyCertificateScreen
 import com.mukhtari.app.ui.recyclebin.RecycleBinScreen
 import com.mukhtari.app.ui.activitylog.ActivityLogScreen
 import com.mukhtari.app.ui.attachments.AttachmentsScreen
+import com.mukhtari.app.ui.backup.BackupRestoreScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
@@ -94,11 +95,17 @@ fun MainNavGraph(modifier: Modifier = Modifier) {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToRecycleBin = { navController.navigate("recycle_bin") },
-                onNavigateToActivityLog = { navController.navigate("activity_log") }
+                onNavigateToActivityLog = { navController.navigate("activity_log") },
+                onNavigateToBackupRestore = { navController.navigate("backup_restore") }
             )
         }
         composable("visitors") {
             VisitorsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("backup_restore") {
+            BackupRestoreScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
