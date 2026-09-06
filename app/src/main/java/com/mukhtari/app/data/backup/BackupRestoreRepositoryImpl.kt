@@ -8,6 +8,7 @@ import com.mukhtari.app.di.DatabaseProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.koin.core.component.KoinComponent
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -21,7 +22,7 @@ class BackupRestoreRepositoryImpl(
     private val databaseProvider: DatabaseProvider,
     private val appVersionCode: Int,
     private val schemaVersion: Int
-) : BackupRestoreRepository {
+) : BackupRestoreRepository, KoinComponent {
 
     private fun getSha256(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
@@ -99,9 +100,6 @@ class BackupRestoreRepositoryImpl(
             zos.putNextEntry(ZipEntry("manifest.json"))
             zos.write(manifestContent.toByteArray())
             zos.closeEntry()
-
-            // Self-Validate the file we just created has valid hashes internally
-            // (Normally happens on restore)
         }
 
         try {
@@ -254,6 +252,12 @@ class BackupRestoreRepositoryImpl(
             }
 
             try {
+                // If a manual abort flag is set (for testing purposes), we explicitly throw an exception
+                // here to test the Rollback path itself instead of failing earlier.
+                if (System.getProperty("MUKHTARI_TEST_ABORT_REPLACEMENT") == "true") {
+                    throw IllegalStateException("Simulated Replacement Failure")
+                }
+
                 // Overwrite files
                 if (stagedDbFile.exists()) stagedDbFile.copyTo(currentDbFile, overwrite = true)
                 if (stagedWalFile.exists()) stagedWalFile.copyTo(activeWalFile, overwrite = true) else activeWalFile.delete()
@@ -264,6 +268,9 @@ class BackupRestoreRepositoryImpl(
                 if (attachmentsStaging.exists()) {
                     attachmentsStaging.copyRecursively(currentAttachments, overwrite = true)
                 }
+
+                // Reload Koin modules dynamically to invalidate old Singleton DAOs and Repositories
+                databaseProvider.reloadDependencies()
 
                 // Reopen the database after successful replacement
                 val reopenedDb = databaseProvider.getDatabase()
@@ -292,7 +299,8 @@ class BackupRestoreRepositoryImpl(
                     attachmentsRollback.copyRecursively(currentAttachments, overwrite = true)
                 }
 
-                // Reopen the original database
+                // Reopen the original database and reload modules
+                databaseProvider.reloadDependencies()
                 databaseProvider.getDatabase()
 
                 return@withContext false

@@ -6,7 +6,6 @@ import com.mukhtari.app.data.local.db.AppDatabase
 import org.koin.core.component.KoinComponent
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
-import org.koin.dsl.module
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -39,5 +38,14 @@ class DatabaseProvider(private val context: Context) : KoinComponent {
         database?.close()
         database = null
         _dbState.value = false
+    }
+
+    @Synchronized
+    fun reloadDependencies() {
+        // Unload and immediately reload the App module. Because repositories and ViewModels are injected
+        // eagerly or lazily, unloading/loading forces them to acquire the newly constructed Database
+        // instance upon their next invocation instead of relying on the closed SQLite handle.
+        unloadKoinModules(appModule)
+        loadKoinModules(appModule)
     }
 }
