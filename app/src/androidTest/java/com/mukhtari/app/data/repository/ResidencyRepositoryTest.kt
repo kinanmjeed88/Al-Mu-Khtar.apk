@@ -25,7 +25,7 @@ class ResidencyRepositoryTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(
             context, AppDatabase::class.java).build()
-        repository = ResidencyRepositoryImpl(db, db.residencyDao(), db.personDao())
+        repository = ResidencyRepositoryImpl(db, db.residencyDao(), db.personDao(), com.mukhtari.app.data.repository.ActivityLogRepositoryImpl(db.activityLogDao()))
     }
 
     @After

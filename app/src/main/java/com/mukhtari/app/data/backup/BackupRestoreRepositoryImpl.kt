@@ -37,6 +37,7 @@ class BackupRestoreRepositoryImpl(
         val walFile = File(dbFile.path + "-wal")
         val shmFile = File(dbFile.path + "-shm")
         val attachmentsDir = File(context.filesDir, "attachments")
+        attachmentsDir.mkdirs()
 
         val backupFile = File(outputDir, "mukhtari_backup_${System.currentTimeMillis()}.zip")
         val fileHashes = mutableMapOf<String, String>()
