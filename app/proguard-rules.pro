@@ -1,0 +1,4 @@
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn javax.annotation.**
+-dontwarn org.apache.batik.**
+-dontwarn org.osgi.**
